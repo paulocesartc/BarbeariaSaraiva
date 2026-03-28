@@ -68,11 +68,13 @@ function TabNavigator() {
         options={{
           tabBarLabel: '',
           tabBarIcon: () => (
-            <MaterialCommunityIcons
-              name="plus"
-              size={30}
-              color={colors.background}
-            />
+            <View style={{ marginTop: 4 }}>
+              <MaterialCommunityIcons
+                name="plus"
+                size={30}
+                color={colors.background}
+              />
+            </View>
           ),
           tabBarButton: (props) => <CustomTabButton {...props} />,
         }}
