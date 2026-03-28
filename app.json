@@ -28,7 +28,10 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "react-native-edge-to-edge"
+      ]
     ],
     "extra": {
       "eas": {
