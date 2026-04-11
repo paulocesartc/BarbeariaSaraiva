@@ -433,7 +433,7 @@ export default function ClientesScreen({ navigation }) {
               <View style={[styles.importFooter, { paddingBottom: insets.bottom + 16 }]}>
                 <TouchableOpacity
                   onPress={handleImportar}
-                  style={[styles.btnSalvar, selected.size === 0 && { opacity: 0.4 }]}
+                  style={[styles.btnImportConfirm, selected.size === 0 && { opacity: 0.4 }]}
                   disabled={selected.size === 0}
                 >
                   <Text style={styles.btnSalvarText}>
@@ -554,6 +554,7 @@ const styles = StyleSheet.create({
   },
   btnCancelarText: { color: colors.textSecondary, fontWeight: '600' },
   btnSalvar: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: colors.gold, alignItems: 'center' },
+  btnImportConfirm: { width: '100%', padding: 16, borderRadius: 14, backgroundColor: colors.gold, alignItems: 'center' },
   btnSalvarText: { color: colors.background, fontWeight: '700', fontSize: 15 },
 
   // Tela de importação (modal fullscreen)
