@@ -343,99 +343,107 @@ export default function ClientesScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* ── Modal: Importar Contatos ── */}
-      <Modal visible={importModal} transparent animationType="slide" onRequestClose={() => setImportModal(false)}>
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setImportModal(false)} />
-          <View style={[styles.sheet, styles.sheetTall, { paddingBottom: sheetPb }]}>
-            <View style={styles.sheetHandle} />
+      {/* ── Modal: Importar Contatos (tela cheia) ── */}
+      <Modal visible={importModal} animationType="slide" onRequestClose={() => setImportModal(false)}>
+        <KeyboardAvoidingView behavior="padding" style={styles.importScreen}>
 
-            <View style={styles.importHeader}>
-              <Text style={styles.sheetTitle}>Importar Contatos</Text>
+          {/* Topo */}
+          <View style={[styles.importTopBar, { paddingTop: insets.top + 12 }]}>
+            <TouchableOpacity onPress={() => setImportModal(false)} style={styles.importBackBtn}>
+              <MaterialCommunityIcons name="arrow-left" size={24} color={colors.white} />
+            </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.importTitle}>Importar Contatos</Text>
               {!loadingContacts && (
-                <TouchableOpacity onPress={toggleTodos} style={styles.btnTodos}>
-                  <Text style={styles.btnTodosText}>
-                    {selected.size === contatosFiltrados.length && contatosFiltrados.length > 0
-                      ? 'Desmarcar todos'
-                      : 'Selecionar todos'}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {loadingContacts ? (
-              <View style={styles.loadingBox}>
-                <MaterialCommunityIcons name="loading" size={32} color={colors.gold} />
-                <Text style={styles.loadingText}>Carregando contatos...</Text>
-              </View>
-            ) : (
-              <>
-                <View style={styles.searchContainer}>
-                  <MaterialCommunityIcons name="magnify" size={18} color={colors.textMuted} />
-                  <TextInput
-                    style={styles.searchInput}
-                    placeholder="Buscar contato..."
-                    placeholderTextColor={colors.textMuted}
-                    value={searchContato}
-                    onChangeText={setSearchContato}
-                  />
-                </View>
-
                 <Text style={styles.importCount}>
                   {selected.size} selecionado{selected.size !== 1 ? 's' : ''} de {contatosFiltrados.length}
                 </Text>
-
-                <FlatList
-                  data={contatosFiltrados}
-                  keyExtractor={(item) => item.id}
-                  showsVerticalScrollIndicator={false}
-                  style={{ flex: 1 }}
-                  renderItem={({ item }) => {
-                    const isSelected = selected.has(item.id);
-                    return (
-                      <TouchableOpacity
-                        style={[styles.contactItem, isSelected && styles.contactItemSelected]}
-                        onPress={() => toggleContato(item.id)}
-                        activeOpacity={0.7}
-                      >
-                        <View style={[styles.contactAvatar, isSelected && styles.contactAvatarSelected]}>
-                          {isSelected
-                            ? <MaterialCommunityIcons name="check" size={16} color={colors.background} />
-                            : <Text style={styles.contactAvatarText}>{item.name[0].toUpperCase()}</Text>
-                          }
-                        </View>
-                        <View style={styles.contactInfo}>
-                          <Text style={styles.contactName}>{item.name}</Text>
-                          <Text style={styles.contactPhone}>{item.phone}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  }}
-                  ListEmptyComponent={
-                    <View style={styles.emptyState}>
-                      <Text style={styles.emptyText}>Nenhum contato encontrado</Text>
-                    </View>
-                  }
-                />
-
-                <View style={[styles.modalBtns, { marginTop: 12 }]}>
-                  <TouchableOpacity onPress={() => setImportModal(false)} style={styles.btnCancelar}>
-                    <Text style={styles.btnCancelarText}>Cancelar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleImportar}
-                    style={[styles.btnSalvar, selected.size === 0 && { opacity: 0.5 }]}
-                    disabled={selected.size === 0}
-                  >
-                    <Text style={styles.btnSalvarText}>
-                      Importar {selected.size > 0 ? `(${selected.size})` : ''}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
+              )}
+            </View>
+            {!loadingContacts && (
+              <TouchableOpacity onPress={toggleTodos} style={styles.btnTodos}>
+                <Text style={styles.btnTodosText}>
+                  {selected.size === contatosFiltrados.length && contatosFiltrados.length > 0
+                    ? 'Desmarcar' : 'Todos'}
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
-        </View>
+
+          {loadingContacts ? (
+            <View style={styles.loadingBox}>
+              <MaterialCommunityIcons name="account-multiple" size={48} color={colors.gold} />
+              <Text style={styles.loadingText}>Carregando contatos...</Text>
+            </View>
+          ) : (
+            <>
+              {/* Busca */}
+              <View style={styles.importSearch}>
+                <MaterialCommunityIcons name="magnify" size={18} color={colors.textMuted} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Buscar contato..."
+                  placeholderTextColor={colors.textMuted}
+                  value={searchContato}
+                  onChangeText={setSearchContato}
+                />
+                {searchContato.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchContato('')}>
+                    <MaterialCommunityIcons name="close-circle" size={16} color={colors.textMuted} />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Lista */}
+              <FlatList
+                data={contatosFiltrados}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 16 }}
+                renderItem={({ item }) => {
+                  const isSelected = selected.has(item.id);
+                  return (
+                    <TouchableOpacity
+                      style={[styles.contactItem, isSelected && styles.contactItemSelected]}
+                      onPress={() => toggleContato(item.id)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[styles.contactAvatar, isSelected && styles.contactAvatarSelected]}>
+                        {isSelected
+                          ? <MaterialCommunityIcons name="check" size={16} color={colors.background} />
+                          : <Text style={styles.contactAvatarText}>{item.name[0].toUpperCase()}</Text>
+                        }
+                      </View>
+                      <View style={styles.contactInfo}>
+                        <Text style={styles.contactName}>{item.name}</Text>
+                        <Text style={styles.contactPhone}>{item.phone}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }}
+                ListEmptyComponent={
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyText}>Nenhum contato encontrado</Text>
+                  </View>
+                }
+              />
+
+              {/* Botão importar fixo no rodapé */}
+              <View style={[styles.importFooter, { paddingBottom: insets.bottom + 16 }]}>
+                <TouchableOpacity
+                  onPress={handleImportar}
+                  style={[styles.btnSalvar, selected.size === 0 && { opacity: 0.4 }]}
+                  disabled={selected.size === 0}
+                >
+                  <Text style={styles.btnSalvarText}>
+                    {selected.size > 0 ? `Importar ${selected.size} contato${selected.size !== 1 ? 's' : ''}` : 'Selecione contatos'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -512,7 +520,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: 24,
   },
-  sheetTall: { maxHeight: '90%' },
   sheetHandle: {
     width: 40, height: 4, borderRadius: 2,
     backgroundColor: colors.textMuted, alignSelf: 'center', marginBottom: 20,
@@ -549,14 +556,30 @@ const styles = StyleSheet.create({
   btnSalvar: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: colors.gold, alignItems: 'center' },
   btnSalvarText: { color: colors.background, fontWeight: '700', fontSize: 15 },
 
-  // Importação
-  importHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  btnTodos: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.gold },
+  // Tela de importação (modal fullscreen)
+  importScreen: { flex: 1, backgroundColor: colors.background },
+  importTopBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingHorizontal: 20, paddingBottom: 12,
+    borderBottomWidth: 1, borderBottomColor: colors.border,
+  },
+  importBackBtn: { padding: 4 },
+  importTitle: { color: colors.white, fontSize: 18, fontWeight: '700' },
+  importCount: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+  btnTodos: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.gold },
   btnTodosText: { color: colors.gold, fontSize: 13, fontWeight: '600' },
-  importCount: { color: colors.textSecondary, fontSize: 13, marginBottom: 10 },
-
-  loadingBox: { alignItems: 'center', paddingVertical: 40, gap: 12 },
-  loadingText: { color: colors.textSecondary, fontSize: 14 },
+  importSearch: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: colors.surface, marginHorizontal: 20, marginVertical: 12,
+    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
+  },
+  importFooter: {
+    paddingHorizontal: 20, paddingTop: 12,
+    borderTopWidth: 1, borderTopColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
+  loadingText: { color: colors.textSecondary, fontSize: 15 },
 
   contactItem: {
     flexDirection: 'row', alignItems: 'center', gap: 12,

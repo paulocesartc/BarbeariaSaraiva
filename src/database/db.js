@@ -3,7 +3,7 @@ import * as SQLite from 'expo-sqlite';
 let db = null;
 
 // Incrementar sempre que mudar estrutura de qualquer tabela
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 export async function getDb() {
   if (db) return db;
