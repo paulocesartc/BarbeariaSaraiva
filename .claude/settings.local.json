@@ -6,7 +6,12 @@
       "Bash(npm start)",
       "Bash(npx expo install:*)",
       "Bash(npx expo prebuild:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(npx expo:*)",
+      "Bash(cat /c/Users/paulo/Documents/BarbeariaSaraiva/src/navigation/*.jsx)",
+      "Bash(cat /c/Users/paulo/Documents/BarbeariaSaraiva/src/navigation/*.js)",
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }
