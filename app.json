@@ -37,6 +37,13 @@
       ],
       "expo-sqlite",
       [
+        "expo-notifications",
+        {
+          "icon": "./src/assets/logo.png",
+          "color": "#D4AF37"
+        }
+      ],
+      [
         "expo-contacts",
         { "contactsPermission": "O app precisa acessar seus contatos para importação." }
       ]

@@ -14,7 +14,7 @@ import { showToast } from '../hooks/useToast';
 
 export default function ClientesScreen({ navigation }) {
   const insets = useSafeAreaInsets();
-  const fabBottom = 70 + insets.bottom + 16;
+  const fabBottom = 70 + insets.bottom + 30;
 
   const [clientes, setClientes] = useState([]);
   const [busca, setBusca] = useState('');
@@ -262,9 +262,10 @@ export default function ClientesScreen({ navigation }) {
         }
       />
 
-      {/* FAB */}
-      <TouchableOpacity style={[styles.fab, { bottom: fabBottom }]} onPress={abrirNovo} activeOpacity={0.8}>
-        <MaterialCommunityIcons name="plus" size={28} color={colors.background} />
+      {/* Botão Novo Cliente fixo no rodapé */}
+      <TouchableOpacity style={[styles.btnNovoCliente, { bottom: fabBottom - 12 }]} onPress={abrirNovo} activeOpacity={0.85}>
+        <MaterialCommunityIcons name="account-plus" size={20} color={colors.background} />
+        <Text style={styles.btnNovoClienteText}>Novo Cliente</Text>
       </TouchableOpacity>
 
       {/* ── Modal: Novo / Editar Cliente ── */}
@@ -506,13 +507,14 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { color: colors.textMuted, marginTop: 10, fontSize: 14 },
 
-  fab: {
-    position: 'absolute', right: 20, width: 60, height: 60,
-    borderRadius: 30, backgroundColor: colors.gold,
-    alignItems: 'center', justifyContent: 'center',
+  btnNovoCliente: {
+    position: 'absolute', right: 20,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: colors.gold, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14,
     elevation: 8, shadowColor: colors.gold,
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
   },
+  btnNovoClienteText: { color: colors.background, fontWeight: '700', fontSize: 14 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   sheet: {

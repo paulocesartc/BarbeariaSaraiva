@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
+import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../theme/colors';
-import useStore from '../store/useStore';
+import { getAppointmentsByDate, getAllAppointmentDates, updateAppointmentStatus, finalizeAppointment, autoTransitionOngoing } from '../database/appointmentsDb';
 import AgendamentoCard from '../components/AgendamentoCard';
+import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import PaymentMethodModal, { PAYMENT_METHODS } from '../components/PaymentMethodModal';
+import { showToast } from '../hooks/useToast';
 
 LocaleConfig.locales['pt-br'] = {
   monthNames: [
@@ -25,24 +29,82 @@ LocaleConfig.defaultLocale = 'pt-br';
 export default function AgendaScreen() {
   const hoje = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(hoje);
-  const agendamentos = useStore((s) => s.agendamentos);
+  const [agendamentosDia, setAgendamentosDia] = useState([]);
+  const [datesWithAppts, setDatesWithAppts] = useState([]);
+  const [cancelModal, setCancelModal] = useState({ visible: false, item: null });
+  const [paymentModal, setPaymentModal] = useState({ visible: false, item: null });
 
-  const agendamentosDia = agendamentos.filter((a) => a.data === selectedDate);
+  const loadData = useCallback(async () => {
+    await autoTransitionOngoing(hoje);
+    const [appts, dates] = await Promise.all([
+      getAppointmentsByDate(selectedDate),
+      getAllAppointmentDates(),
+    ]);
+    setAgendamentosDia(appts);
+    setDatesWithAppts(dates.map((d) => d.date));
+  }, [selectedDate, hoje]);
 
-  // Mark dates that have appointments
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
+  function handleFinalizar(item) {
+    setPaymentModal({ visible: true, item });
+  }
+
+  async function confirmarPagamento(method) {
+    const item = paymentModal.item;
+    if (!item) return;
+    try {
+      await finalizeAppointment({
+        id: item.id,
+        clientId: item.client_id,
+        price: item.price,
+        paymentMethod: method,
+      });
+      setPaymentModal({ visible: false, item: null });
+      const cfg = PAYMENT_METHODS[method];
+      showToast({
+        type: 'success',
+        text1: 'Atendimento finalizado',
+        text2: `${item.client_name} · ${cfg.label} · R$ ${item.price.toFixed(2)}`,
+      });
+      await loadData();
+    } catch (e) {
+      console.log('[Agenda] erro ao finalizar:', e?.message ?? e);
+      setPaymentModal({ visible: false, item: null });
+      showToast({
+        type: 'error',
+        text1: 'Erro ao finalizar',
+        text2: e?.message ?? 'Tente novamente.',
+      });
+    }
+  }
+
+  function pedirCancelamento(item) {
+    setCancelModal({ visible: true, item });
+  }
+
+  async function confirmarCancelamento() {
+    const item = cancelModal.item;
+    setCancelModal({ visible: false, item: null });
+    await updateAppointmentStatus(item.id, 'cancelado');
+    showToast({ type: 'error', text1: 'Agendamento cancelado', text2: item.client_name });
+    loadData();
+  }
+
   const markedDates = {};
-  agendamentos.forEach((a) => {
-    if (a.data !== selectedDate) {
-      markedDates[a.data] = {
-        marked: true,
-        dotColor: colors.gold,
-      };
+  datesWithAppts.forEach((d) => {
+    if (d !== selectedDate) {
+      markedDates[d] = { marked: true, dotColor: colors.gold };
     }
   });
   markedDates[selectedDate] = {
     selected: true,
     selectedColor: colors.gold,
-    marked: agendamentos.some((a) => a.data === selectedDate),
+    marked: datesWithAppts.includes(selectedDate),
     dotColor: colors.background,
   };
 
@@ -50,6 +112,7 @@ export default function AgendaScreen() {
     { label: 'Agendado', color: colors.statusLivre },
     { label: 'Em atendimento', color: colors.statusOcupado },
     { label: 'Finalizado', color: colors.statusFinalizado },
+    { label: 'Cancelado', color: colors.danger },
   ];
 
   return (
@@ -81,7 +144,6 @@ export default function AgendaScreen() {
         style={styles.calendar}
       />
 
-      {/* Legend */}
       <View style={styles.legendRow}>
         {statusLegend.map((s) => (
           <View key={s.label} style={styles.legendItem}>
@@ -91,7 +153,6 @@ export default function AgendaScreen() {
         ))}
       </View>
 
-      {/* Appointments for selected date */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           {selectedDate === hoje
@@ -107,13 +168,40 @@ export default function AgendaScreen() {
             <Text style={styles.emptyText}>Nenhum agendamento neste dia</Text>
           </View>
         ) : (
-          agendamentosDia
-            .sort((a, b) => a.horario.localeCompare(b.horario))
-            .map((a) => <AgendamentoCard key={a.id} agendamento={a} />)
+          <>
+            <Text style={styles.hint}>← Cancelar · Finalizar →</Text>
+            {agendamentosDia.map((a) => (
+              <AgendamentoCard
+                key={a.id}
+                agendamento={a}
+                onFinalizar={handleFinalizar}
+                onCancelar={pedirCancelamento}
+              />
+            ))}
+          </>
         )}
       </View>
 
       <View style={{ height: 100 }} />
+
+      <DeleteConfirmModal
+        visible={cancelModal.visible}
+        title="Cancelar agendamento"
+        description={
+          cancelModal.item
+            ? `Deseja realmente cancelar o atendimento de "${cancelModal.item.client_name}" às ${cancelModal.item.time}?`
+            : ''
+        }
+        onConfirm={confirmarCancelamento}
+        onCancel={() => setCancelModal({ visible: false, item: null })}
+      />
+
+      <PaymentMethodModal
+        visible={paymentModal.visible}
+        appointment={paymentModal.item}
+        onConfirm={confirmarPagamento}
+        onCancel={() => setPaymentModal({ visible: false, item: null })}
+      />
     </ScrollView>
   );
 }
@@ -175,4 +263,5 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 14,
   },
+  hint: { color: colors.textMuted, fontSize: 11, fontStyle: 'italic', marginBottom: 10 },
 });

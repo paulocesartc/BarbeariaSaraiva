@@ -68,26 +68,28 @@ export async function importClients(contacts) {
   const existingPhones = new Set(existing.map((r) => r.phone.replace(/\D/g, '')));
 
   let imported = 0;
-  for (const c of contacts) {
-    const rawPhone = (c.phone ?? '').replace(/\D/g, '');
-    if (existingPhones.has(rawPhone)) continue; // já existe, pula
+  await db.withTransactionAsync(async () => {
+    for (const c of contacts) {
+      const rawPhone = (c.phone ?? '').replace(/\D/g, '');
+      if (existingPhones.has(rawPhone)) continue;
 
-    const id = generateUUID();
-    const avatar = (c.name ?? '?')
-      .trim()
-      .split(' ')
-      .map((w) => w[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+      const id = generateUUID();
+      const avatar = (c.name ?? '?')
+        .trim()
+        .split(' ')
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
 
-    await db.runAsync(
-      `INSERT INTO clients (id, name, phone, description, avatar) VALUES (?, ?, ?, ?, ?)`,
-      [id, c.name.trim(), c.phone ?? '', '', avatar]
-    );
-    existingPhones.add(rawPhone);
-    imported++;
-  }
+      await db.runAsync(
+        `INSERT INTO clients (id, name, phone, description, avatar) VALUES (?, ?, ?, ?, ?)`,
+        [id, c.name.trim(), c.phone ?? '', '', avatar]
+      );
+      existingPhones.add(rawPhone);
+      imported++;
+    }
+  });
 
   console.log('[clientsDb] importClients → importados:', imported, '| ignorados:', contacts.length - imported);
   return imported;

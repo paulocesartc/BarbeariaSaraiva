@@ -13,6 +13,7 @@ import ClientesScreen from '../screens/ClientesScreen';
 import ClientePerfilScreen from '../screens/ClientePerfilScreen';
 import ServicosScreen from '../screens/ServicosScreen';
 import NovoAgendamentoScreen from '../screens/NovoAgendamentoScreen';
+import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -130,6 +131,11 @@ export default function AppNavigator() {
         <Stack.Screen
           name="ClientePerfil"
           component={ClientePerfilScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="Configuracoes"
+          component={ConfiguracoesScreen}
           options={{ animation: 'slide_from_right' }}
         />
       </Stack.Navigator>

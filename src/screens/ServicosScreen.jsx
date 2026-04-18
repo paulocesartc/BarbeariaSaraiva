@@ -95,7 +95,8 @@ export default function ServicosScreen() {
       carregar();
       showToast({ type: 'success', text1: 'Serviço criado', text2: `"${name}" foi adicionado.` });
     } catch (e) {
-      showToast({ type: 'error', text1: 'Erro ao salvar', text2: 'Tente novamente.' });
+      console.log('[ServicosScreen] erro ao criar:', e);
+      showToast({ type: 'error', text1: 'Erro ao salvar', text2: String(e.message || e) });
     }
   }
 
@@ -190,7 +191,7 @@ export default function ServicosScreen() {
     setModoSelecao(false);
   }
 
-  const fabBottom = 70 + insets.bottom + 16;
+  const fabBottom = 70 + insets.bottom + 30;
 
   // ── Render card ────────────────────────────────────────────────
   const renderServico = ({ item }) => {
@@ -266,12 +267,6 @@ export default function ServicosScreen() {
           <Text style={styles.title}>Serviços</Text>
           <Text style={styles.subtitle}>{servicos.length} disponíveis</Text>
         </View>
-        {!modoSelecao && (
-          <TouchableOpacity style={styles.btnNovo} onPress={() => setModalVisible(true)}>
-            <MaterialCommunityIcons name="plus" size={20} color={colors.background} />
-            <Text style={styles.btnNovoText}>Novo</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Barra de seleção/combo */}
@@ -315,6 +310,18 @@ export default function ServicosScreen() {
           </View>
         }
       />
+
+      {/* FAB Novo Serviço */}
+      {!modoSelecao && (
+        <TouchableOpacity
+          style={[styles.fab, { bottom: fabBottom - 12 }]}
+          onPress={() => setModalVisible(true)}
+          activeOpacity={0.85}
+        >
+          <MaterialCommunityIcons name="plus" size={20} color={colors.background} />
+          <Text style={styles.fabText}>Novo Serviço</Text>
+        </TouchableOpacity>
+      )}
 
       {/* ── Modal: Novo Serviço ── */}
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
@@ -557,20 +564,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 2,
   },
-  btnNovo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.gold,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-    gap: 4,
+  fab: {
+    position: 'absolute', right: 20,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: colors.gold, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14,
+    elevation: 8, shadowColor: colors.gold,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
   },
-  btnNovoText: {
-    color: colors.background,
-    fontWeight: '700',
-    fontSize: 14,
-  },
+  fabText: { color: colors.background, fontWeight: '700', fontSize: 14 },
   dicaSelecao: {
     color: colors.textSecondary,
     fontSize: 12,

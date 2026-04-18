@@ -15,17 +15,17 @@ const Toast = forwardRef((_, ref) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-20)).current;
   const timer = useRef(null);
-  const [toast, setToast] = useState({ type: 'success', text1: '', text2: '' });
+  const [toast, setToast] = useState({ type: 'success', text1: '', text2: '', visible: false });
 
   useImperativeHandle(ref, () => ({
     show({ type = 'success', text1 = '', text2 = '', duration = 3000 }) {
       if (timer.current) clearTimeout(timer.current);
 
-      setToast({ type, text1, text2 });
+      setToast({ type, text1, text2, visible: true });
 
       Animated.parallel([
-        Animated.spring(opacity, { toValue: 1, useNativeDriver: true }),
-        Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),
+        Animated.spring(opacity, { toValue: 1, useNativeDriver: true, bounciness: 4 }),
+        Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 4 }),
       ]).start();
 
       timer.current = setTimeout(() => hide(), duration);
@@ -36,10 +36,14 @@ const Toast = forwardRef((_, ref) => {
     Animated.parallel([
       Animated.timing(opacity, { toValue: 0, duration: 250, useNativeDriver: true }),
       Animated.timing(translateY, { toValue: -20, duration: 250, useNativeDriver: true }),
-    ]).start();
+    ]).start(() => {
+      setToast((prev) => ({ ...prev, visible: false }));
+    });
   }
 
   const cfg = CONFIGS[toast.type] ?? CONFIGS.info;
+
+  if (!toast.visible) return null;
 
   return (
     <Animated.View
