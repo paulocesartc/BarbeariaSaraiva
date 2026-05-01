@@ -1,108 +1,78 @@
-import { getDb, generateUUID } from './db';
+import { supabase, generateUUID } from './db';
 
 export async function getAllClients({ includeInactive = false } = {}) {
-  const db = await getDb();
-  const where = includeInactive ? '' : 'WHERE active = 1';
-  return db.getAllAsync(`SELECT * FROM clients ${where} ORDER BY name ASC`);
+  let query = supabase.from('clients').select('*').order('name', { ascending: true });
+  if (!includeInactive) query = query.eq('active', 1);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
 }
 
 export async function getClientById(id) {
-  const db = await getDb();
-  return db.getFirstAsync('SELECT * FROM clients WHERE id = ?', [id]);
+  const { data, error } = await supabase.from('clients').select('*').eq('id', id).single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getClientByPhone(phone) {
+  const normalized = phone.replace(/\D/g, '');
+  const { data } = await supabase.from('clients').select('*').eq('phone', normalized).maybeSingle();
+  return data;
 }
 
 export async function createClient({ name, phone, description }) {
-  const db = await getDb();
   const id = generateUUID();
-  const avatar = name
-    .trim()
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  const payload = { id, name, phone, description, avatar };
-  console.log('[clientsDb] createClient →', JSON.stringify(payload));
-
-  await db.runAsync(
-    `INSERT INTO clients (id, name, phone, description, avatar)
-     VALUES (?, ?, ?, ?, ?)`,
-    [id, name.trim(), phone ?? '', description ?? '', avatar]
-  );
-  console.log('[clientsDb] createClient → ok, id:', id);
+  const avatar = name.trim().split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  const { error } = await supabase
+    .from('clients')
+    .insert({ id, name: name.trim(), phone: phone ?? '', description: description ?? '', avatar });
+  if (error) throw error;
   return id;
 }
 
 export async function updateClient(id, { name, phone, description }) {
-  const db = await getDb();
-  const avatar = name
-    .trim()
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  console.log('[clientsDb] updateClient → id:', id, JSON.stringify({ name, phone, description }));
-
-  await db.runAsync(
-    `UPDATE clients SET name = ?, phone = ?, description = ?, avatar = ? WHERE id = ?`,
-    [name.trim(), phone ?? '', description ?? '', avatar, id]
-  );
-  console.log('[clientsDb] updateClient → ok');
+  const avatar = name.trim().split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  const { error } = await supabase
+    .from('clients')
+    .update({ name: name.trim(), phone: phone ?? '', description: description ?? '', avatar })
+    .eq('id', id);
+  if (error) throw error;
 }
 
 export async function setClientActive(id, active) {
-  const db = await getDb();
-  console.log('[clientsDb] setClientActive → id:', id, 'active:', active);
-  await db.runAsync('UPDATE clients SET active = ? WHERE id = ?', [active ? 1 : 0, id]);
+  const { error } = await supabase.from('clients').update({ active: active ? 1 : 0 }).eq('id', id);
+  if (error) throw error;
 }
 
-/** Importa uma lista de contatos em massa, ignorando duplicatas de telefone */
 export async function importClients(contacts) {
-  const db = await getDb();
+  const { data: existing } = await supabase.from('clients').select('phone');
+  const existingPhones = new Set((existing ?? []).map((r) => r.phone.replace(/\D/g, '')));
 
-  // Pega todos os telefones já cadastrados para evitar duplicata
-  const existing = await db.getAllAsync('SELECT phone FROM clients');
-  const existingPhones = new Set(existing.map((r) => r.phone.replace(/\D/g, '')));
+  const toInsert = [];
+  for (const c of contacts) {
+    const rawPhone = (c.phone ?? '').replace(/\D/g, '');
+    if (existingPhones.has(rawPhone)) continue;
+    const id = generateUUID();
+    const avatar = (c.name ?? '?').trim().split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+    toInsert.push({ id, name: c.name.trim(), phone: c.phone ?? '', description: '', avatar });
+    existingPhones.add(rawPhone);
+  }
 
-  let imported = 0;
-  await db.withTransactionAsync(async () => {
-    for (const c of contacts) {
-      const rawPhone = (c.phone ?? '').replace(/\D/g, '');
-      if (existingPhones.has(rawPhone)) continue;
+  if (toInsert.length > 0) {
+    const { error } = await supabase.from('clients').insert(toInsert);
+    if (error) throw error;
+  }
 
-      const id = generateUUID();
-      const avatar = (c.name ?? '?')
-        .trim()
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-
-      await db.runAsync(
-        `INSERT INTO clients (id, name, phone, description, avatar) VALUES (?, ?, ?, ?, ?)`,
-        [id, c.name.trim(), c.phone ?? '', '', avatar]
-      );
-      existingPhones.add(rawPhone);
-      imported++;
-    }
-  });
-
-  console.log('[clientsDb] importClients → importados:', imported, '| ignorados:', contacts.length - imported);
-  return imported;
+  return toInsert.length;
 }
 
-/** Incrementa contadores após um atendimento ser finalizado */
 export async function addAppointmentToClient(clientId, value) {
-  const db = await getDb();
-  await db.runAsync(
-    `UPDATE clients
-     SET total_appointments = total_appointments + 1,
-         total_spent = total_spent + ?
-     WHERE id = ?`,
-    [value, clientId]
-  );
+  const { data: client, error: fetchError } = await supabase
+    .from('clients').select('total_appointments, total_spent').eq('id', clientId).single();
+  if (fetchError) throw fetchError;
+  const { error } = await supabase.from('clients').update({
+    total_appointments: (client.total_appointments ?? 0) + 1,
+    total_spent: (client.total_spent ?? 0) + (Number(value) || 0),
+  }).eq('id', clientId);
+  if (error) throw error;
 }
