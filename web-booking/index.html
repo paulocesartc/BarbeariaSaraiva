@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barbearia Saraiva — Agendamento</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0D0D0D;
+      --surface: #1C1C1C;
+      --surface-light: #252525;
+      --border: #2A2A2A;
+      --gold: #D4AF37;
+      --gold-light: #FFD700;
+      --white: #FFFFFF;
+      --text-secondary: #999999;
+      --text-muted: #666666;
+      --success: #2ECC71;
+      --danger: #E74C3C;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    /* Header */
+    .header { text-align: center; padding: 32px 0 28px; }
+    .header-logo {
+      width: 64px; height: 64px; border-radius: 20px;
+      background: var(--gold); display: inline-flex;
+      align-items: center; justify-content: center;
+      font-size: 28px; margin-bottom: 14px;
+    }
+    .header h1 { font-size: 22px; font-weight: 700; color: var(--white); }
+    .header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+    /* Steps */
+    .steps {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; margin-bottom: 28px;
+    }
+    .step-item { display: flex; align-items: center; }
+    .step-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surface); border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .step-circle.active { border-color: var(--gold); color: var(--gold); }
+    .step-circle.done { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+    .step-label {
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      margin-left: 6px; transition: color 0.2s;
+    }
+    .step-label.active { color: var(--gold); }
+    .step-line {
+      width: 28px; height: 2px; background: var(--border);
+      margin: 0 8px; transition: background 0.2s;
+    }
+    .step-line.done { background: var(--gold); }
+
+    /* Cards */
+    .card {
+      background: var(--surface); border-radius: 14px;
+      padding: 16px; margin-bottom: 10px;
+      border: 1.5px solid transparent; cursor: pointer;
+      display: flex; align-items: center; gap: 12;
+      transition: border-color 0.15s;
+    }
+    .card:hover { border-color: var(--border); }
+    .card.selected { border-color: var(--gold); }
+    .card-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--bg); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .card-info { flex: 1; }
+    .card-name { font-size: 15px; font-weight: 600; color: var(--white); }
+    .card-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+    .card-price { font-size: 16px; font-weight: 700; color: var(--gold); }
+
+    /* Input */
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    input, select {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 13px 14px;
+      color: var(--white); font-size: 15px; outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus { border-color: var(--gold); }
+    input::placeholder { color: var(--text-muted); }
+    select option { background: var(--surface); color: var(--white); }
+
+    /* Date chips */
+    .date-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 20px; }
+    .date-scroll::-webkit-scrollbar { display: none; }
+    .date-chip {
+      padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface); cursor: pointer; white-space: nowrap;
+      font-size: 13px; font-weight: 600; color: var(--white);
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .date-chip:hover { border-color: var(--gold); }
+    .date-chip.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+
+    /* Slots grid */
+    .slots-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .slot {
+      padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border);
+      background: var(--surface); cursor: pointer;
+      font-size: 14px; font-weight: 600; color: var(--white);
+      transition: all 0.15s; min-width: 70px; text-align: center;
+    }
+    .slot:hover:not(.occupied) { border-color: var(--gold); }
+    .slot.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+    .slot.occupied { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
+
+    /* Summary card */
+    .summary-card {
+      background: var(--surface); border-radius: 14px; padding: 18px;
+      border: 1px solid var(--gold); margin-bottom: 20px;
+    }
+    .summary-title { color: var(--gold); font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .summary-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .summary-row span { font-size: 14px; color: var(--white); }
+    .summary-valor { color: var(--gold); font-size: 22px; font-weight: 800; margin-top: 10px; }
+
+    /* Button */
+    .btn {
+      width: 100%; padding: 16px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      color: var(--bg); font-size: 16px; font-weight: 700;
+      border: none; cursor: pointer; transition: opacity 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-back {
+      background: var(--surface); color: var(--white);
+      border: 1px solid var(--border); margin-bottom: 12px;
+    }
+
+    /* Section title */
+    .section-title { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 12px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 20px; min-width: 260px;
+      display: flex; align-items: center; gap: 10; z-index: 999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      animation: slideDown 0.3s ease; display: none;
+    }
+    .toast.show { display: flex; }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+    .toast-icon { font-size: 18px; }
+    .toast-text { font-size: 14px; font-weight: 600; color: var(--white); }
+    @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+    /* Success screen */
+    .success-screen { text-align: center; padding: 40px 0; }
+    .success-icon { font-size: 64px; margin-bottom: 20px; }
+    .success-title { font-size: 24px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+    .success-sub { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: 15px; }
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    .phone-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+    .client-found { background: var(--surface); border: 1px solid var(--success); border-radius: 10px; padding: 12px 14px; margin-top: 8px; display: none; }
+    .client-found.show { display: flex; align-items: center; gap: 10; }
+    .client-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--bg); font-size: 13px; flex-shrink: 0; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-logo">✂️</div>
+    <h1>Barbearia Saraiva</h1>
+    <p>Agende seu horário em segundos</p>
+  </div>
+
+  <!-- Steps indicator -->
+  <div class="steps" id="steps">
+    <div class="step-item">
+      <div class="step-circle active" id="circle-0">1</div>
+      <span class="step-label active" id="label-0">Serviço</span>
+    </div>
+    <div class="step-line" id="line-0"></div>
+    <div class="step-item">
+      <div class="step-circle" id="circle-1">2</div>
+      <span class="step-label" id="label-1">Horário</span>
+    </div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step-item">
+      <div class="step-circle" id="circle-2">3</div>
+      <span class="step-label" id="label-2">Seus dados</span>
+    </div>
+  </div>
+
+  <!-- Step 0: Serviço -->
+  <div id="step-0">
+    <p class="section-title">Escolha o serviço</p>
+    <div id="services-list"><div class="loading">Carregando serviços...</div></div>
+  </div>
+
+  <!-- Step 1: Horário -->
+  <div id="step-1" class="hidden">
+    <div class="summary-card" id="summary-service" style="margin-bottom:20px"></div>
+
+    <p class="section-title">Escolha a data</p>
+    <div class="date-scroll" id="date-chips"></div>
+
+    <p class="section-title">Horários disponíveis</p>
+    <div class="slots-grid" id="slots-grid"><div class="loading">Carregando...</div></div>
+
+    <button class="btn btn-back" onclick="goToStep(0)">← Voltar</button>
+    <button class="btn" id="btn-next-horario" disabled onclick="goToStep(2)">Continuar →</button>
+  </div>
+
+  <!-- Step 2: Dados do cliente -->
+  <div id="step-2" class="hidden">
+    <div class="summary-card" id="summary-final"></div>
+
+    <div class="input-group">
+      <label>Seu telefone (WhatsApp)</label>
+      <input type="tel" id="input-phone" placeholder="(11) 99999-9999" maxlength="15" />
+      <div class="client-found" id="client-found-box">
+        <div class="client-avatar" id="client-avatar"></div>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:#fff" id="client-found-name"></div>
+          <div style="font-size:12px;color:var(--success)">Cadastro encontrado ✓</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>Seu nome completo</label>
+      <input type="text" id="input-name" placeholder="João da Silva" />
+    </div>
+
+    <button class="btn btn-back" onclick="goToStep(1)">← Voltar</button>
+    <button class="btn" id="btn-confirmar" onclick="confirmarAgendamento()">Confirmar Agendamento ✓</button>
+  </div>
+
+  <!-- Sucesso -->
+  <div id="step-success" class="hidden">
+    <div class="success-screen">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Agendamento confirmado!</div>
+      <div class="success-sub" id="success-details"></div>
+      <br><br>
+      <button class="btn" onclick="resetAll()">Fazer novo agendamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon"></span>
+  <span class="toast-text" id="toast-text"></span>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://dzezieygyqaapkfwhlaa.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_LCgD3WBRHyOutMzd5M5ISQ_xh5yg_QX';
+
+  const api = (path, opts = {}) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || '',
+      ...opts.headers,
+    },
+    ...opts,
+  });
+
+  // State
+  let selectedService = null;
+  let selectedDate = null;
+  let selectedTime = null;
+  let foundClient = null;
+
+  // ─── Steps ───────────────────────────────────────────────
+  function goToStep(n) {
+    [0,1,2].forEach(i => {
+      document.getElementById(`step-${i}`).classList.toggle('hidden', i !== n);
+    });
+    document.getElementById('step-success').classList.add('hidden');
+    updateStepIndicator(n);
+    if (n === 1) loadSlots();
+    if (n === 2) renderFinalSummary();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateStepIndicator(current) {
+    [0,1,2].forEach(i => {
+      const circle = document.getElementById(`circle-${i}`);
+      const label = document.getElementById(`label-${i}`);
+      circle.className = 'step-circle' + (i < current ? ' done' : i === current ? ' active' : '');
+      circle.textContent = i < current ? '✓' : i + 1;
+      label.className = 'step-label' + (i <= current ? ' active' : '');
+      if (i < 2) document.getElementById(`line-${i}`).className = 'step-line' + (i < current ? ' done' : '');
+    });
+  }
+
+  // ─── Step 0: Serviços ─────────────────────────────────────
+  async function loadServices() {
+    const res = await api('services?select=*&order=name.asc');
+    const services = await res.json();
+    const list = document.getElementById('services-list');
+
+    if (!services.length) {
+      list.innerHTML = '<div class="loading">Nenhum serviço disponível</div>';
+      return;
+    }
+
+    const iconMap = {
+      'content-cut': '✂️', 'star': '⭐', 'scissors-cutting': '✂️',
+      'face-man': '🧔', 'mustache': '🥸', 'hair-dryer': '💇',
+      'razor': '🪒', 'spa': '💆', 'brush': '🖌️',
+      'account': '👤', 'hand-wave': '👋', 'crown': '👑',
+    };
+
+    list.innerHTML = services.map(s => `
+      <div class="card" id="svc-${s.id}" onclick="selectService(${JSON.stringify(s).replace(/"/g, '&quot;')})">
+        <div class="card-icon">${iconMap[s.icon] || '✂️'}</div>
+        <div class="card-info">
+          <div class="card-name">${s.name}</div>
+          <div class="card-sub">${s.duration_min} min</div>
+        </div>
+        <div class="card-price">R$ ${Number(s.price).toFixed(2)}</div>
+      </div>
+    `).join('');
+  }
+
+  function selectService(s) {
+    selectedService = s;
+    document.querySelectorAll('#services-list .card').forEach(c => c.classList.remove('selected'));
+    document.getElementById(`svc-${s.id}`).classList.add('selected');
+    setTimeout(() => goToStep(1), 200);
+  }
+
+  // ─── Step 1: Horários ─────────────────────────────────────
+  function buildDateChips() {
+    const chips = document.getElementById('date-chips');
+    chips.innerHTML = '';
+    const today = new Date();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const iso = d.toISOString().split('T')[0];
+      const label = d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+      const chip = document.createElement('div');
+      chip.className = 'date-chip' + (iso === selectedDate ? ' selected' : '');
+      chip.textContent = label;
+      chip.onclick = () => {
+        selectedDate = iso;
+        selectedTime = null;
+        document.getElementById('btn-next-horario').disabled = true;
+        document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        loadSlots();
+      };
+      chips.appendChild(chip);
+    }
+    if (!selectedDate) {
+      selectedDate = today.toISOString().split('T')[0];
+      chips.firstChild?.classList.add('selected');
+    }
+  }
+
+  async function loadSlots() {
+    const grid = document.getElementById('slots-grid');
+    grid.innerHTML = '<div class="loading">Verificando horários...</div>';
+
+    document.getElementById('summary-service').innerHTML = `
+      <div class="summary-row"><span>✂️</span><span>${selectedService.name} — ${selectedService.duration_min}min</span></div>
+      <div class="summary-row"><span>📅</span><span>${formatDateLabel(selectedDate)}</span></div>
+    `;
+
+    buildDateChips();
+
+    const res = await api(`appointments?select=time,duration_min&date=eq.${selectedDate}&status=neq.cancelado`);
+    const existing = await res.json();
+
+    const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+    const fromMin = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+    const START = 8*60, END = 20*60, STEP = 30;
+    const dur = selectedService.duration_min;
+
+    grid.innerHTML = '';
+    for (let t = START; t + dur <= END; t += STEP) {
+      let conflict = false;
+      for (const a of existing) {
+        const es = toMin(a.time), ee = es + a.duration_min;
+        if (t < ee && t + dur > es) { conflict = true; break; }
+      }
+      const slot = document.createElement('div');
+      slot.className = 'slot' + (conflict ? ' occupied' : '') + (fromMin(t) === selectedTime ? ' selected' : '');
+      slot.textContent = fromMin(t);
+      if (!conflict) slot.onclick = () => {
+        selectedTime = fromMin(t);
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+        slot.classList.add('selected');
+        document.getElementById('btn-next-horario').disabled = false;
+      };
+      grid.appendChild(slot);
+    }
+  }
+
+  function formatDateLabel(iso) {
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  // ─── Step 2: Dados do cliente ─────────────────────────────
+  function renderFinalSummary() {
+    document.getElementById('summary-final').innerHTML = `
+      <div class="summary-title">Resumo</div>
+      <div class="summary-row"><span>✂️</span><span>${selectedService.name} (${selectedService.duration_min}min)</span></div>
+      <div class="summary-row"><span>📅</span><span>${formatDateLabel(selectedDate)}</span></div>
+      <div class="summary-row"><span>🕐</span><span>${selectedTime}</span></div>
+      <div class="summary-valor">R$ ${Number(selectedService.price).toFixed(2)}</div>
+    `;
+  }
+
+  // Phone lookup
+  let phoneTimer = null;
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('input-phone').addEventListener('input', function() {
+      formatPhone(this);
+      clearTimeout(phoneTimer);
+      const raw = this.value.replace(/\D/g, '');
+      if (raw.length >= 10) phoneTimer = setTimeout(() => lookupPhone(raw), 600);
+      else hideClientFound();
+    });
+  });
+
+  function formatPhone(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 10) v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+    else if (v.length > 6) v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+    else if (v.length > 2) v = v.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+    else v = v.replace(/^(\d*)$/, '($1');
+    input.value = v;
+  }
+
+  async function lookupPhone(raw) {
+    const res = await api(`clients?phone=eq.${raw}&select=*&limit=1`);
+    const data = await res.json();
+    if (data.length > 0) {
+      foundClient = data[0];
+      document.getElementById('client-avatar').textContent = foundClient.avatar;
+      document.getElementById('client-found-name').textContent = foundClient.name;
+      document.getElementById('client-found-box').classList.add('show');
+      document.getElementById('input-name').value = foundClient.name;
+      document.getElementById('input-name').readOnly = true;
+      document.getElementById('input-name').style.opacity = '0.6';
+    } else {
+      hideClientFound();
+      foundClient = null;
+      document.getElementById('input-name').readOnly = false;
+      document.getElementById('input-name').style.opacity = '1';
+    }
+  }
+
+  function hideClientFound() {
+    document.getElementById('client-found-box').classList.remove('show');
+  }
+
+  // ─── Confirmar agendamento ────────────────────────────────
+  async function confirmarAgendamento() {
+    const phone = document.getElementById('input-phone').value.replace(/\D/g, '');
+    if (phone.length < 10) { showToast('error', 'Informe seu telefone com DDD'); return; }
+
+    const btn = document.getElementById('btn-confirmar');
+    btn.disabled = true;
+    btn.textContent = 'Aguarde...';
+
+    try {
+      let clientId, clientName;
+
+      if (foundClient) {
+        clientId = foundClient.id;
+        clientName = foundClient.name;
+      } else {
+        const name = document.getElementById('input-name').value.trim();
+        if (!name) { showToast('error', 'Informe seu nome'); btn.disabled = false; btn.textContent = 'Confirmar Agendamento ✓'; return; }
+        clientId = generateUUID();
+        clientName = name;
+        const avatar = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        const cr = await api('clients', {
+          method: 'POST',
+          prefer: 'return=minimal',
+          body: JSON.stringify({ id: clientId, name, phone, description: '', avatar }),
+        });
+        if (!cr.ok) throw new Error('Erro ao cadastrar cliente');
+      }
+
+      const apptId = generateUUID();
+      const ar = await api('appointments', {
+        method: 'POST',
+        prefer: 'return=minimal',
+        body: JSON.stringify({
+          id: apptId,
+          client_id: clientId,
+          client_name: clientName,
+          service_id: selectedService.id,
+          service_name: selectedService.name,
+          date: selectedDate,
+          time: selectedTime,
+          duration_min: selectedService.duration_min,
+          price: selectedService.price,
+          status: 'livre',
+        }),
+      });
+      if (!ar.ok) throw new Error('Erro ao criar agendamento');
+
+      [0,1,2].forEach(i => document.getElementById(`step-${i}`).classList.add('hidden'));
+      document.getElementById('steps').classList.add('hidden');
+      document.getElementById('step-success').classList.remove('hidden');
+      document.getElementById('success-details').innerHTML =
+        `<strong>${clientName}</strong><br>${selectedService.name}<br>${formatDateLabel(selectedDate)} às ${selectedTime}`;
+
+    } catch (e) {
+      showToast('error', e.message || 'Erro ao agendar. Tente novamente.');
+      btn.disabled = false;
+      btn.textContent = 'Confirmar Agendamento ✓';
+    }
+  }
+
+  function resetAll() {
+    selectedService = null; selectedDate = null; selectedTime = null; foundClient = null;
+    document.getElementById('input-phone').value = '';
+    document.getElementById('input-name').value = '';
+    document.getElementById('input-name').readOnly = false;
+    document.getElementById('input-name').style.opacity = '1';
+    hideClientFound();
+    document.getElementById('steps').classList.remove('hidden');
+    goToStep(0);
+    loadServices();
+  }
+
+  // ─── Toast ────────────────────────────────────────────────
+  function showToast(type, msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-icon').textContent = type === 'success' ? '✅' : '❌';
+    document.getElementById('toast-text').textContent = msg;
+    t.className = `toast show ${type}`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ─── UUID ─────────────────────────────────────────────────
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+
+  // Init
+  loadServices();
+</script>
+</body>
+</html>
