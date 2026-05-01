@@ -77,7 +77,7 @@
       background: var(--surface); border-radius: 14px;
       padding: 16px; margin-bottom: 10px;
       border: 1.5px solid transparent; cursor: pointer;
-      display: flex; align-items: center; gap: 12;
+      display: flex; align-items: center; gap: 12px;
       transition: border-color 0.15s;
     }
     .card:hover { border-color: var(--border); }
@@ -91,7 +91,7 @@
     .card-info { flex: 1; margin-left: 4px; }
     .card-name { font-size: 15px; font-weight: 600; color: var(--white); }
     .card-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
-    .card-price { font-size: 16px; font-weight: 700; color: var(--gold); }
+    .card-price { font-size: 15px; font-weight: 700; color: var(--gold); white-space: nowrap; flex-shrink: 0; }
 
     /* Input */
     .input-group { margin-bottom: 16px; }
@@ -120,12 +120,13 @@
     .date-chip.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
 
     /* Slots grid */
-    .slots-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+    @media (max-width: 360px) { .slots-grid { grid-template-columns: repeat(3, 1fr); } }
     .slot {
-      padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border);
+      padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--border);
       background: var(--surface); cursor: pointer;
       font-size: 14px; font-weight: 600; color: var(--white);
-      transition: all 0.15s; min-width: 70px; text-align: center;
+      transition: all 0.15s; text-align: center;
     }
     .slot:hover:not(.occupied) { border-color: var(--gold); }
     .slot.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
@@ -164,8 +165,8 @@
     .toast {
       position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px 20px; min-width: 260px;
-      display: flex; align-items: center; gap: 10; z-index: 999;
+      border-radius: 12px; padding: 14px 20px; min-width: 260px; max-width: calc(100vw - 40px);
+      display: flex; align-items: center; gap: 10px; z-index: 999;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       animation: slideDown 0.3s ease; display: none;
     }
