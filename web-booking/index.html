@@ -406,8 +406,9 @@
 
     buildDateChips();
 
-    const res = await api(`appointments?select=time,duration_min&date=eq.${selectedDate}&status=neq.cancelado`);
-    const existing = await res.json();
+    const res = await api(`appointments?select=time,duration_min&date=eq.${selectedDate}&status=not.eq.cancelado`);
+    const data = await res.json();
+    const existing = Array.isArray(data) ? data : [];
 
     const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
     const fromMin = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
