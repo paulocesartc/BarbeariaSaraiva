@@ -363,22 +363,14 @@
   }
 
   // ─── Step 1: Horários ─────────────────────────────────────
-  function localDateISO(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
-
   function buildDateChips() {
     const chips = document.getElementById('date-chips');
     chips.innerHTML = '';
     const today = new Date();
-    if (!selectedDate) selectedDate = localDateISO(today);
-
     for (let i = 0; i < 14; i++) {
-      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
-      const iso = localDateISO(d);
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const iso = d.toISOString().split('T')[0];
       const label = d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
       const chip = document.createElement('div');
       chip.className = 'date-chip' + (iso === selectedDate ? ' selected' : '');
@@ -393,6 +385,10 @@
       };
       chips.appendChild(chip);
     }
+    if (!selectedDate) {
+      selectedDate = today.toISOString().split('T')[0];
+      chips.firstChild?.classList.add('selected');
+    }
   }
 
   async function loadSlots() {
@@ -406,9 +402,8 @@
 
     buildDateChips();
 
-    const res = await api(`appointments?select=time,duration_min&date=eq.${selectedDate}&status=not.eq.cancelado`);
-    const data = await res.json();
-    const existing = Array.isArray(data) ? data : [];
+    const res = await api(`appointments?select=time,duration_min&date=eq.${selectedDate}&status=neq.cancelado`);
+    const existing = await res.json();
 
     const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
     const fromMin = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
@@ -436,9 +431,9 @@
   }
 
   function formatDateLabel(iso) {
-    const [y, m, d] = iso.split('-').map(Number);
-    const date = new Date(y, m - 1, d);
-    return date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    if (!iso) return 'Aguardando data';
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
   }
 
   // ─── Step 2: Dados do cliente ─────────────────────────────
