@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import { getAllClients } from '../database/clientsDb';
 import { getAllServices } from '../database/servicesDb';
-import { createAppointment, getAvailableSlots, hasConflict } from '../database/appointmentsDb';
+import { createAppointment, getAvailableSlots, hasConflict, getBlockedDays } from '../database/appointmentsDb';
 import PremiumButton from '../components/PremiumButton';
 import TimeSlot from '../components/TimeSlot';
 import { showToast } from '../hooks/useToast';
@@ -43,6 +43,7 @@ export default function NovoAgendamentoScreen({ navigation }) {
   const [precoCustom, setPrecoCustom] = useState('');
   const [searchCliente, setSearchCliente] = useState('');
   const [searchServico, setSearchServico] = useState('');
+  const [blockedDays, setBlockedDays] = useState(new Set());
 
   const totalDuration = servicosSelecionados.reduce((sum, s) => sum + s.duration_min, 0);
   const totalPrice = servicosSelecionados.reduce((sum, s) => sum + s.price, 0);
@@ -64,9 +65,10 @@ export default function NovoAgendamentoScreen({ navigation }) {
     useCallback(() => {
       resetForm();
       async function load() {
-        const [c, s] = await Promise.all([getAllClients(), getAllServices()]);
+        const [c, s, blocked] = await Promise.all([getAllClients(), getAllServices(), getBlockedDays()]);
         setClientes(c);
         setServicos(s);
+        setBlockedDays(new Set(blocked));
       }
       load();
     }, [])
@@ -288,19 +290,41 @@ export default function NovoAgendamentoScreen({ navigation }) {
 
       <Text style={styles.subtitle}>Data</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
-        {nextDays.map((d) => (
-          <TouchableOpacity
-            key={d}
-            style={[styles.dateChip, selectedDate === d && styles.dateChipActive]}
-            onPress={() => { setSelectedDate(d); setHorarioSelecionado(null); }}
-          >
-            <Text style={[styles.dateChipText, selectedDate === d && styles.dateChipTextActive]}>
-              {formatDateLabel(d)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {nextDays.map((d) => {
+          const isBlocked = blockedDays.has(d);
+          const isActive = selectedDate === d;
+          return (
+            <TouchableOpacity
+              key={d}
+              style={[
+                styles.dateChip,
+                isActive && !isBlocked && styles.dateChipActive,
+                isBlocked && styles.dateChipBlocked,
+              ]}
+              onPress={() => { setSelectedDate(d); setHorarioSelecionado(null); }}
+            >
+              <Text style={[
+                styles.dateChipText,
+                isActive && !isBlocked && styles.dateChipTextActive,
+                isBlocked && styles.dateChipTextBlocked,
+              ]}>
+                {formatDateLabel(d)}
+              </Text>
+              {isBlocked && (
+                <MaterialCommunityIcons name="cancel" size={12} color={colors.danger} style={{ marginTop: 2 }} />
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
+      {blockedDays.has(selectedDate) ? (
+        <View style={styles.blockedBanner}>
+          <MaterialCommunityIcons name="calendar-remove" size={22} color={colors.danger} />
+          <Text style={styles.blockedBannerText}>Este dia está bloqueado e não aceita agendamentos.</Text>
+        </View>
+      ) : (
+        <>
       <Text style={styles.subtitle}>Valor</Text>
       <View style={styles.priceRow}>
         <Text style={styles.pricePrefix}>R$</Text>
@@ -320,6 +344,7 @@ export default function NovoAgendamentoScreen({ navigation }) {
             horario={s.time}
             selecionado={horarioSelecionado === s.time}
             ocupado={!s.available}
+            lunch={s.lunch}
             onPress={() => { setHorarioSelecionado(s.time); setCustomTime(''); }}
           />
         ))}
@@ -359,6 +384,8 @@ export default function NovoAgendamentoScreen({ navigation }) {
             style={{ marginTop: 16 }}
           />
         </View>
+      )}
+        </>
       )}
     </ScrollView>
   );
@@ -460,10 +487,19 @@ const styles = StyleSheet.create({
   dateChip: {
     paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10,
     backgroundColor: colors.surface, marginRight: 8, borderWidth: 1, borderColor: colors.border,
+    alignItems: 'center',
   },
   dateChipActive: { backgroundColor: colors.gold, borderColor: colors.gold },
+  dateChipBlocked: { borderColor: `${colors.danger}55`, backgroundColor: `${colors.danger}10`, opacity: 0.7 },
   dateChipText: { color: colors.white, fontSize: 13, fontWeight: '600' },
   dateChipTextActive: { color: colors.background },
+  dateChipTextBlocked: { color: colors.textMuted, textDecorationLine: 'line-through' },
+  blockedBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: `${colors.danger}15`, borderRadius: 12, padding: 16,
+    borderLeftWidth: 3, borderLeftColor: colors.danger, marginBottom: 16,
+  },
+  blockedBannerText: { color: colors.textSecondary, fontSize: 14, flex: 1, lineHeight: 20 },
   priceRow: {
     flexDirection: 'row', alignItems: 'center', marginBottom: 20,
     backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border,

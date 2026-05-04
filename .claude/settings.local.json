@@ -12,7 +12,8 @@
       "Bash(cat /c/Users/paulo/Documents/BarbeariaSaraiva/src/navigation/*.js)",
       "Bash(npm install:*)",
       "Bash(npm uninstall:*)",
-      "Bash(copy *)"
+      "Bash(copy *)",
+      "Bash(xargs grep *)"
     ]
   }
 }

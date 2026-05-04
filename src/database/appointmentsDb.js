@@ -1,4 +1,5 @@
 import { supabase, generateUUID } from './db';
+import { getLunchTime } from './settingsDb';
 
 export async function getAppointmentsByDate(date) {
   const { data, error } = await supabase
@@ -97,11 +98,14 @@ export async function hasConflict(date, time, duration_min, excludeId = null) {
 }
 
 export async function getAvailableSlots(date, duration_min) {
-  const { data, error } = await supabase
-    .from('appointments')
-    .select('time, duration_min')
-    .eq('date', date)
-    .not('status', 'in', '("cancelado")');
+  const [{ data, error }, lunchTimeStr] = await Promise.all([
+    supabase
+      .from('appointments')
+      .select('time, duration_min')
+      .eq('date', date)
+      .not('status', 'in', '("cancelado")'),
+    getLunchTime(),
+  ]);
   if (error) throw error;
 
   const toMinutes = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
@@ -109,10 +113,16 @@ export async function getAvailableSlots(date, duration_min) {
 
   const START = 8 * 60;
   const END = 20 * 60;
-  const STEP = 30;
+  const STEP = 60;
+  const LUNCH = toMinutes(lunchTimeStr);
 
   const slots = [];
   for (let t = START; t + duration_min <= END; t += STEP) {
+    // Bloqueia o slot do almoço (o slot que começa exatamente no horário configurado)
+    if (t === LUNCH) {
+      slots.push({ time: fromMinutes(t), available: false, lunch: true });
+      continue;
+    }
     let conflict = false;
     for (const appt of data) {
       const existStart = toMinutes(appt.time);
@@ -161,4 +171,38 @@ export async function getDayCount(date) {
     .not('status', 'in', '("cancelado")');
   if (error) throw error;
   return data.length;
+}
+
+export async function getBlockedDays() {
+  const { data, error } = await supabase
+    .from('blocked_days')
+    .select('date')
+    .order('date', { ascending: true });
+  if (error) throw error;
+  return data.map((r) => r.date);
+}
+
+export async function isDayBlocked(date) {
+  const { data, error } = await supabase
+    .from('blocked_days')
+    .select('id')
+    .eq('date', date)
+    .maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
+
+export async function blockDay(date) {
+  const { error } = await supabase
+    .from('blocked_days')
+    .upsert({ date }, { onConflict: 'date' });
+  if (error) throw error;
+}
+
+export async function unblockDay(date) {
+  const { error } = await supabase
+    .from('blocked_days')
+    .delete()
+    .eq('date', date);
+  if (error) throw error;
 }

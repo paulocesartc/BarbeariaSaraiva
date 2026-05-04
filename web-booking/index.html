@@ -116,8 +116,9 @@
       font-size: 13px; font-weight: 600; color: var(--white);
       transition: all 0.15s; flex-shrink: 0;
     }
-    .date-chip:hover { border-color: var(--gold); }
+    .date-chip:hover:not(.blocked) { border-color: var(--gold); }
     .date-chip.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+    .date-chip.blocked { border-color: rgba(231,76,60,0.35); background: rgba(231,76,60,0.08); color: var(--text-muted); cursor: not-allowed; text-decoration: line-through; opacity: 0.7; }
 
     /* Slots grid */
     .slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
@@ -131,6 +132,7 @@
     .slot:hover:not(.occupied) { border-color: var(--gold); }
     .slot.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
     .slot.occupied { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
+    .slot.lunch { background: rgba(52,152,219,0.08); border-color: rgba(52,152,219,0.3); opacity: 0.55; cursor: not-allowed; font-size: 12px; }
 
     /* Summary card */
     .summary-card {
@@ -303,6 +305,8 @@
   let selectedDate = null;
   let selectedTime = null;
   let foundClient = null;
+  let blockedDaysSet = new Set();
+  let lunchTime = '13:00';
 
   // ─── Steps ───────────────────────────────────────────────
   function goToStep(n) {
@@ -367,27 +371,50 @@
       d.setDate(today.getDate() + i);
       const iso = d.toISOString().split('T')[0];
       const label = d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+      const isBlocked = blockedDaysSet.has(iso);
       const chip = document.createElement('div');
-      chip.className = 'date-chip' + (iso === selectedDate ? ' selected' : '');
+      chip.className = 'date-chip' + (iso === selectedDate ? ' selected' : '') + (isBlocked ? ' blocked' : '');
       chip.textContent = label;
-      chip.onclick = () => {
-        selectedDate = iso;
-        selectedTime = null;
-        document.getElementById('btn-next-horario').disabled = true;
-        document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        loadSlots();
-      };
+      if (!isBlocked) {
+        chip.onclick = () => {
+          selectedDate = iso;
+          selectedTime = null;
+          document.getElementById('btn-next-horario').disabled = true;
+          document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          loadSlots();
+        };
+      }
       chips.appendChild(chip);
     }
     if (!selectedDate) {
-      selectedDate = today.toISOString().split('T')[0];
-      chips.firstChild?.classList.add('selected');
+      // Seleciona primeiro dia não bloqueado
+      const firstAvailable = chips.querySelector('.date-chip:not(.blocked)');
+      if (firstAvailable) {
+        firstAvailable.classList.add('selected');
+        const idx = [...chips.children].indexOf(firstAvailable);
+        const d = new Date();
+        d.setDate(d.getDate() + idx);
+        selectedDate = d.toISOString().split('T')[0];
+      }
     }
   }
 
   async function loadSlots() {
     const grid = document.getElementById('slots-grid');
+
+    // Dia bloqueado — mostra aviso em vez dos slots
+    if (blockedDaysSet.has(selectedDate)) {
+      document.getElementById('summary-service').innerHTML = `
+        <div class="summary-row"><span class="mdi mdi-${selectedService.icon || 'content-cut'}" style="color:var(--gold);font-size:18px"></span><span>${selectedService.name} — ${selectedService.duration_min}min</span></div>
+        <div class="summary-row"><span class="mdi mdi-calendar" style="color:var(--gold);font-size:18px"></span><span>${formatDateLabel(selectedDate)}</span></div>
+      `;
+      buildDateChips();
+      grid.innerHTML = '<div style="text-align:center;padding:30px 10px;color:var(--danger);font-size:14px;font-weight:600"><span class="mdi mdi-calendar-remove" style="font-size:32px;display:block;margin-bottom:8px"></span>Este dia está indisponível para agendamentos.</div>';
+      document.getElementById('btn-next-horario').disabled = true;
+      return;
+    }
+
     grid.innerHTML = '<div class="loading">Verificando horários...</div>';
 
     document.getElementById('summary-service').innerHTML = `
@@ -402,25 +429,34 @@
 
     const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
     const fromMin = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
-    const START = 8*60, END = 20*60, STEP = 30;
+    const START = 8*60, END = 20*60, STEP = 60;
     const dur = selectedService.duration_min;
+    const LUNCH = toMin(lunchTime);
 
     grid.innerHTML = '';
     for (let t = START; t + dur <= END; t += STEP) {
+      const isLunch = t === LUNCH;
       let conflict = false;
-      for (const a of existing) {
-        const es = toMin(a.time), ee = es + a.duration_min;
-        if (t < ee && t + dur > es) { conflict = true; break; }
+      if (!isLunch) {
+        for (const a of existing) {
+          const es = toMin(a.time), ee = es + a.duration_min;
+          if (t < ee && t + dur > es) { conflict = true; break; }
+        }
       }
       const slot = document.createElement('div');
-      slot.className = 'slot' + (conflict ? ' occupied' : '') + (fromMin(t) === selectedTime ? ' selected' : '');
-      slot.textContent = fromMin(t);
-      if (!conflict) slot.onclick = () => {
-        selectedTime = fromMin(t);
-        document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
-        slot.classList.add('selected');
-        document.getElementById('btn-next-horario').disabled = false;
-      };
+      if (isLunch) {
+        slot.className = 'slot lunch';
+        slot.innerHTML = `${fromMin(t)}<br><span style="font-size:10px;opacity:0.7">almoço</span>`;
+      } else {
+        slot.className = 'slot' + (conflict ? ' occupied' : '') + (fromMin(t) === selectedTime ? ' selected' : '');
+        slot.textContent = fromMin(t);
+        if (!conflict) slot.onclick = () => {
+          selectedTime = fromMin(t);
+          document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+          slot.classList.add('selected');
+          document.getElementById('btn-next-horario').disabled = false;
+        };
+      }
       grid.appendChild(slot);
     }
   }
@@ -585,8 +621,20 @@
     });
   }
 
-  // Init
-  loadServices();
+  // ─── Init ─────────────────────────────────────────────────
+  async function init() {
+    const [blockedRes, settingsRes] = await Promise.all([
+      api('blocked_days?select=date'),
+      api('settings?key=eq.lunch_time&select=value&limit=1'),
+    ]);
+    const blockedData = await blockedRes.json();
+    const settingsData = await settingsRes.json();
+    blockedDaysSet = new Set((blockedData || []).map(r => r.date));
+    if (settingsData?.[0]?.value) lunchTime = settingsData[0].value;
+    loadServices();
+  }
+
+  init();
 </script>
 </body>
 </html>

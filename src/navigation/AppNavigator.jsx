@@ -14,6 +14,7 @@ import ClientePerfilScreen from '../screens/ClientePerfilScreen';
 import ServicosScreen from '../screens/ServicosScreen';
 import NovoAgendamentoScreen from '../screens/NovoAgendamentoScreen';
 import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
+import DiasBloqueadosScreen from '../screens/DiasBloqueadosScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -136,6 +137,11 @@ export default function AppNavigator() {
         <Stack.Screen
           name="Configuracoes"
           component={ConfiguracoesScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="DiasBloqueados"
+          component={DiasBloqueadosScreen}
           options={{ animation: 'slide_from_right' }}
         />
       </Stack.Navigator>

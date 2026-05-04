@@ -1,24 +1,30 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 
-export default function TimeSlot({ horario, selecionado, ocupado, onPress }) {
+export default function TimeSlot({ horario, selecionado, ocupado, lunch, onPress }) {
   return (
     <TouchableOpacity
       style={[
         styles.slot,
         selecionado && styles.selecionado,
-        ocupado && styles.ocupado,
+        ocupado && !lunch && styles.ocupado,
+        lunch && styles.almoco,
       ]}
       onPress={onPress}
       disabled={ocupado}
       activeOpacity={0.7}
     >
+      {lunch && (
+        <MaterialCommunityIcons name="food-fork-drink" size={12} color={colors.textMuted} style={{ marginBottom: 2 }} />
+      )}
       <Text
         style={[
           styles.text,
           selecionado && styles.textSelecionado,
-          ocupado && styles.textOcupado,
+          ocupado && !lunch && styles.textOcupado,
+          lunch && styles.textAlmoco,
         ]}
       >
         {horario}
@@ -48,6 +54,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     opacity: 0.4,
   },
+  almoco: {
+    backgroundColor: `${colors.info}12`,
+    borderColor: `${colors.info}40`,
+    opacity: 0.6,
+    alignItems: 'center',
+  },
   text: {
     color: colors.white,
     fontSize: 14,
@@ -59,5 +71,9 @@ const styles = StyleSheet.create({
   textOcupado: {
     color: colors.textMuted,
     textDecorationLine: 'line-through',
+  },
+  textAlmoco: {
+    color: colors.textMuted,
+    fontSize: 13,
   },
 });
