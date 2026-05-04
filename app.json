@@ -26,7 +26,8 @@
       "package": "com.barbeariasaraiva.app",
       "jsEngine": "hermes",
       "softwareKeyboardLayoutMode": "resize",
-      "permissions": ["android.permission.READ_CONTACTS"]
+      "permissions": ["android.permission.READ_CONTACTS"],
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       "expo-asset",
