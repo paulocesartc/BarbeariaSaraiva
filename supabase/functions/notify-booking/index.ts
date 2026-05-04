@@ -64,6 +64,19 @@ Deno.serve(async (req) => {
     const expoResult = await expoRes.json();
     console.log('Expo response:', JSON.stringify(expoResult));
 
+    // Aguarda 5s e verifica o receipt para confirmar entrega pelo FCM
+    const receiptId = expoResult?.data?.id;
+    if (receiptId) {
+      await new Promise(r => setTimeout(r, 5000));
+      const receiptRes = await fetch('https://exp.host/--/api/v2/push/getReceipts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [receiptId] }),
+      });
+      const receipt = await receiptRes.json();
+      console.log('Receipt:', JSON.stringify(receipt));
+    }
+
     return new Response(JSON.stringify(expoResult), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
