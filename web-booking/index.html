@@ -433,11 +433,16 @@
     const dur = selectedService.duration_min;
     const LUNCH = toMin(lunchTime);
 
+    const hoje = new Date();
+    const dataHoje = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
+    const nowMin = selectedDate === dataHoje ? hoje.getHours()*60 + hoje.getMinutes() : -1;
+
     grid.innerHTML = '';
     for (let t = START; t + dur <= END; t += STEP) {
       const isLunch = t === LUNCH;
+      const isPast = nowMin >= 0 && t <= nowMin;
       let conflict = false;
-      if (!isLunch) {
+      if (!isLunch && !isPast) {
         for (const a of existing) {
           const es = toMin(a.time), ee = es + a.duration_min;
           if (t < ee && t + dur > es) { conflict = true; break; }
@@ -447,6 +452,9 @@
       if (isLunch) {
         slot.className = 'slot lunch';
         slot.innerHTML = `${fromMin(t)}<br><span style="font-size:10px;opacity:0.7">almoço</span>`;
+      } else if (isPast) {
+        slot.className = 'slot occupied';
+        slot.textContent = fromMin(t);
       } else {
         slot.className = 'slot' + (conflict ? ' occupied' : '') + (fromMin(t) === selectedTime ? ' selected' : '');
         slot.textContent = fromMin(t);
