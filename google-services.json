@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "515713224077",
+    "project_id": "barbearia-saraiva",
+    "storage_bucket": "barbearia-saraiva.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:515713224077:android:e2cb8ab46ab4935dcb81c4",
+        "android_client_info": {
+          "package_name": "com.barbeariasaraiva.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAosm1UsMvXenI_7pRTDPwy3mh6-ix51AQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
