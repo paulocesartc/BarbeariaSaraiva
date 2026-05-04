@@ -18,7 +18,9 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git stash *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "PowerShell(Invoke-RestMethod -Uri 'https://exp.host/--/api/v2/push/getReceipts' -Method POST -ContentType 'application/json' -Body '{\"ids\":[\"019df44b-520d-76d1-8bca-c834503f9d9f\"]}')",
+      "Bash(curl *)"
     ]
   }
 }
