@@ -591,27 +591,13 @@
   // ─── Push Notification para o barbeiro ───────────────────────
   async function sendBookingPushNotification(nome, servico, data, horario) {
     try {
-      const res = await api('settings?select=value&key=eq.expo_push_token');
-      const rows = await res.json();
-      const token = rows?.[0]?.value;
-      if (!token) return;
-
-      const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      const [ano, mes, dia] = data.split('-');
-      const dataObj = new Date(Number(ano), Number(mes) - 1, Number(dia));
-      const dataFormatada = `${diasSemana[dataObj.getDay()]} ${dia}/${mes}`;
-
-      await fetch('https://exp.host/--/api/v2/push/send', {
+      await fetch(`${SUPABASE_URL}/functions/v1/notify-booking`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          to: token,
-          title: '📅 Novo agendamento pelo site!',
-          body: `${nome} agendou ${servico} — ${dataFormatada} às ${horario}`,
-          data: { type: 'new_booking' },
-          sound: 'default',
-          priority: 'high',
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+        },
+        body: JSON.stringify({ clientName: nome, serviceName: servico, date: data, time: horario }),
       });
     } catch (e) {
       console.warn('Push notification falhou:', e.message);

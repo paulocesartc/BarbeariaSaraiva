@@ -13,7 +13,12 @@
       "Bash(npm install:*)",
       "Bash(npm uninstall:*)",
       "Bash(copy *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(git filter-branch *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git stash *)",
+      "Bash(git push *)"
     ]
   }
 }
