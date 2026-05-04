@@ -1,26 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cd:*)",
-      "Bash(chmod:*)",
-      "Bash(npm start)",
-      "Bash(npx expo install:*)",
       "Bash(npx expo prebuild:*)",
-      "Bash(git rm:*)",
-      "Bash(npx expo:*)",
-      "Bash(cat /c/Users/paulo/Documents/BarbeariaSaraiva/src/navigation/*.jsx)",
-      "Bash(cat /c/Users/paulo/Documents/BarbeariaSaraiva/src/navigation/*.js)",
-      "Bash(npm install:*)",
-      "Bash(npm uninstall:*)",
-      "Bash(copy *)",
-      "Bash(xargs grep *)",
-      "Bash(git filter-branch *)",
-      "Bash(git add *)",
-      "Bash(git commit *)",
-      "Bash(git stash *)",
-      "Bash(git push *)",
-      "PowerShell(Invoke-RestMethod -Uri 'https://exp.host/--/api/v2/push/getReceipts' -Method POST -ContentType 'application/json' -Body '{\"ids\":[\"019df44b-520d-76d1-8bca-c834503f9d9f\"]}')",
-      "Bash(curl *)"
-    ]
+      "Bash(./gradlew assembleRelease:*)",
+      "Bash(./gradlew:*)"
+    ],
+    "deny": [],
+    "ask": []
   }
 }

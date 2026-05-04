@@ -1,0 +1,5 @@
+# Files to exclude from EAS builds (in addition to .gitignore)
+# Use !pattern to include files that are in .gitignore
+
+# Include google-services.json for builds
+!google-services.json
