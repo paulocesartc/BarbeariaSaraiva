@@ -112,7 +112,7 @@ export async function getAvailableSlots(date, duration_min) {
   const fromMinutes = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 
   const START = 8 * 60;
-  const END = 20 * 60;
+  const END = 21 * 60;
   const STEP = 60;
   const LUNCH = toMinutes(lunchTimeStr);
 
