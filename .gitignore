@@ -44,3 +44,7 @@ yarn-error.*
 *.swp
 *.swo
 *~
+
+# Firebase credentials
+*firebase-adminsdk*.json
+google-services.json
