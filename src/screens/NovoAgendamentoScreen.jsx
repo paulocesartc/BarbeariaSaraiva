@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, TextInput,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -391,7 +392,10 @@ export default function NovoAgendamentoScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => { if (step > 0) setStep(step - 1); else navigation.goBack(); }}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.white} />
@@ -407,7 +411,7 @@ export default function NovoAgendamentoScreen({ navigation }) {
         {step === 1 && renderServicos()}
         {step === 2 && renderHorarios()}
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
