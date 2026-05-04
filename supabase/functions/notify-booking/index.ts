@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
         body: `${clientName} agendou ${serviceName} — ${dataFormatada} às ${time}`,
         sound: 'default',
         priority: 'high',
+        channelId: 'default',
       }),
     });
 
