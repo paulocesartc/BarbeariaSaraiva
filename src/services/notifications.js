@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import { getAppointmentsByDate, getDayRevenue, getDayCount } from '../database/appointmentsDb';
 import { setSetting } from '../database/settingsDb';
 
@@ -132,12 +132,10 @@ async function savePushToken() {
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId: EAS_PROJECT_ID });
     if (token) {
       await setSetting('expo_push_token', token);
-      Alert.alert('Push Token OK', token);
-    } else {
-      Alert.alert('Push Token', 'Token veio vazio');
+      console.log('[notifications] Push token salvo:', token);
     }
   } catch (e) {
-    Alert.alert('Erro Push Token', e.message);
+    console.warn('[notifications] Falha ao salvar push token:', e.message);
   }
 }
 
