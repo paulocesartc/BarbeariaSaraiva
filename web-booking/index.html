@@ -623,14 +623,18 @@
 
   // ─── Init ─────────────────────────────────────────────────
   async function init() {
-    const [blockedRes, settingsRes] = await Promise.all([
-      api('blocked_days?select=date'),
-      api('settings?key=eq.lunch_time&select=value&limit=1'),
-    ]);
-    const blockedData = await blockedRes.json();
-    const settingsData = await settingsRes.json();
-    blockedDaysSet = new Set((blockedData || []).map(r => r.date));
-    if (settingsData?.[0]?.value) lunchTime = settingsData[0].value;
+    try {
+      const [blockedRes, settingsRes] = await Promise.all([
+        api('blocked_days?select=date'),
+        api('settings?key=eq.lunch_time&select=value&limit=1'),
+      ]);
+      const blockedData = await blockedRes.json();
+      const settingsData = await settingsRes.json();
+      if (Array.isArray(blockedData)) blockedDaysSet = new Set(blockedData.map(r => r.date));
+      if (Array.isArray(settingsData) && settingsData[0]?.value) lunchTime = settingsData[0].value;
+    } catch (e) {
+      console.warn('init parcial:', e);
+    }
     loadServices();
   }
 
