@@ -392,10 +392,7 @@ export default function NovoAgendamentoScreen({ navigation }) {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => { if (step > 0) setStep(step - 1); else navigation.goBack(); }}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.white} />
@@ -409,9 +406,16 @@ export default function NovoAgendamentoScreen({ navigation }) {
       <View style={styles.content}>
         {step === 0 && renderClientes()}
         {step === 1 && renderServicos()}
-        {step === 2 && renderHorarios()}
+        {step === 2 && (
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            {renderHorarios()}
+          </KeyboardAvoidingView>
+        )}
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
