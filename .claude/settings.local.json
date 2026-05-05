@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npx expo prebuild:*)",
       "Bash(./gradlew assembleRelease:*)",
-      "Bash(./gradlew:*)"
+      "Bash(./gradlew:*)",
+      "Bash(dir C:\\\\Users\\\\paulo\\\\Documents\\\\BarbeariaSaraiva\\\\web-booking *)"
     ],
     "deny": [],
     "ask": []

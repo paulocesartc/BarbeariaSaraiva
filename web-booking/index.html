@@ -362,6 +362,10 @@
   }
 
   // ─── Step 1: Horários ─────────────────────────────────────
+  function localISO(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
   function buildDateChips() {
     const chips = document.getElementById('date-chips');
     chips.innerHTML = '';
@@ -369,7 +373,7 @@
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
-      const iso = d.toISOString().split('T')[0];
+      const iso = localISO(d);
       const label = d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
       const isBlocked = blockedDaysSet.has(iso);
       const chip = document.createElement('div');
@@ -395,7 +399,7 @@
         const idx = [...chips.children].indexOf(firstAvailable);
         const d = new Date();
         d.setDate(d.getDate() + idx);
-        selectedDate = d.toISOString().split('T')[0];
+        selectedDate = localISO(d);
       }
     }
   }
