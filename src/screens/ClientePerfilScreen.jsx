@@ -14,6 +14,7 @@ import { formatPhone } from '../utils/phone';
 import { showToast } from '../hooks/useToast';
 
 const STATUS_LABELS = {
+  agendado: { label: 'Agendado', color: colors.statusLivre, icon: 'clock-outline' },
   livre: { label: 'Agendado', color: colors.statusLivre, icon: 'clock-outline' },
   ocupado: { label: 'Em atendimento', color: colors.statusOcupado, icon: 'content-cut' },
   finalizado: { label: 'Finalizado', color: colors.statusFinalizado, icon: 'check-circle' },

@@ -6,6 +6,7 @@ import { colors } from '../theme/colors';
 import { PAYMENT_METHODS } from './PaymentMethodModal';
 
 const statusConfig = {
+  agendado: { label: 'Agendado', color: colors.statusLivre, icon: 'clock-outline' },
   livre: { label: 'Agendado', color: colors.statusLivre, icon: 'clock-outline' },
   ocupado: { label: 'Em atendimento', color: colors.statusOcupado, icon: 'content-cut' },
   finalizado: { label: 'Finalizado', color: colors.statusFinalizado, icon: 'check-circle' },

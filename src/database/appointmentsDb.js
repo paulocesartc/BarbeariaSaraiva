@@ -43,6 +43,7 @@ export async function createAppointment({ client_id, client_name, service_id, se
     time: String(time ?? ''),
     duration_min: Number(duration_min) || 30,
     price: Number(price) || 0,
+    status: 'agendado',
   });
   if (error) throw error;
   return id;
@@ -142,7 +143,7 @@ export async function autoTransitionOngoing(date) {
     .from('appointments')
     .select('id, time')
     .eq('date', date)
-    .eq('status', 'livre');
+    .in('status', ['agendado', 'livre']);
   if (error) throw error;
 
   for (const appt of data) {

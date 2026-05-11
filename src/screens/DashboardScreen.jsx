@@ -19,8 +19,13 @@ import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import PaymentMethodModal, { PAYMENT_METHODS } from '../components/PaymentMethodModal';
 import { showToast } from '../hooks/useToast';
 
+function localDateStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
 export default function DashboardScreen({ navigation }) {
-  const hoje = new Date().toISOString().split('T')[0];
+  const hoje = localDateStr();
   const [agendamentosHoje, setAgendamentosHoje] = useState([]);
   const [faturamento, setFaturamento] = useState(0);
   const [totalDia, setTotalDia] = useState(0);
