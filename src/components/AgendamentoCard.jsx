@@ -1,19 +1,23 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { PAYMENT_METHODS } from './PaymentMethodModal';
 
-const statusConfig = {
-  agendado: { label: 'Agendado', color: colors.statusLivre, icon: 'clock-outline' },
-  livre: { label: 'Agendado', color: colors.statusLivre, icon: 'clock-outline' },
-  ocupado: { label: 'Em atendimento', color: colors.statusOcupado, icon: 'content-cut' },
-  finalizado: { label: 'Finalizado', color: colors.statusFinalizado, icon: 'check-circle' },
-  cancelado: { label: 'Cancelado', color: colors.danger, icon: 'close-circle' },
-};
-
 export default function AgendamentoCard({ agendamento, onFinalizar, onCancelar }) {
+  const { primaryColor } = useTheme();
+  const styles = useMemo(() => makeStyles(primaryColor), [primaryColor]);
+
+  const statusConfig = {
+    agendado: { label: 'Agendado', color: colors.statusLivre, icon: 'clock-outline' },
+    livre: { label: 'Agendado', color: colors.statusLivre, icon: 'clock-outline' },
+    ocupado: { label: 'Em atendimento', color: colors.statusOcupado, icon: 'content-cut' },
+    finalizado: { label: 'Finalizado', color: colors.statusFinalizado, icon: 'check-circle' },
+    cancelado: { label: 'Cancelado', color: colors.danger, icon: 'close-circle' },
+  };
+
   const status = statusConfig[agendamento.status] || statusConfig.livre;
   const swipeableRef = useRef(null);
   const canSwipe = agendamento.status !== 'finalizado' && agendamento.status !== 'cancelado';
@@ -116,46 +120,48 @@ export default function AgendamentoCard({ agendamento, onFinalizar, onCancelar }
   );
 }
 
-const styles = StyleSheet.create({
-  swipeContainer: {
-    borderRadius: 12,
-    marginBottom: 10,
-    overflow: 'hidden',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderLeftWidth: 4,
-  },
-  timeContainer: { alignItems: 'center', width: 55 },
-  horario: { color: colors.white, fontSize: 16, fontWeight: '700' },
-  duracao: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
-  divider: { width: 1, height: 40, backgroundColor: colors.border, marginHorizontal: 14 },
-  infoContainer: { flex: 1 },
-  clienteNome: { color: colors.white, fontSize: 15, fontWeight: '600' },
-  servicoNome: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 4 },
-  statusText: { fontSize: 12, fontWeight: '500' },
-  rightCol: { alignItems: 'flex-end' },
-  valor: { color: colors.gold, fontSize: 16, fontWeight: '700' },
-  payRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
-  payText: { fontSize: 10, fontWeight: '600' },
-  leftAction: {
-    flex: 1,
-    backgroundColor: colors.success,
-    justifyContent: 'center',
-    paddingLeft: 24,
-    alignItems: 'flex-start',
-  },
-  rightAction: {
-    flex: 1,
-    backgroundColor: colors.danger,
-    justifyContent: 'center',
-    paddingRight: 24,
-    alignItems: 'flex-end',
-  },
-  actionText: { color: colors.white, fontWeight: '700', fontSize: 12, marginTop: 4 },
-});
+function makeStyles(primary) {
+  return StyleSheet.create({
+    swipeContainer: {
+      borderRadius: 12,
+      marginBottom: 10,
+      overflow: 'hidden',
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderLeftWidth: 4,
+    },
+    timeContainer: { alignItems: 'center', width: 55 },
+    horario: { color: colors.white, fontSize: 16, fontWeight: '700' },
+    duracao: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
+    divider: { width: 1, height: 40, backgroundColor: colors.border, marginHorizontal: 14 },
+    infoContainer: { flex: 1 },
+    clienteNome: { color: colors.white, fontSize: 15, fontWeight: '600' },
+    servicoNome: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+    statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 4 },
+    statusText: { fontSize: 12, fontWeight: '500' },
+    rightCol: { alignItems: 'flex-end' },
+    valor: { color: primary, fontSize: 16, fontWeight: '700' },
+    payRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
+    payText: { fontSize: 10, fontWeight: '600' },
+    leftAction: {
+      flex: 1,
+      backgroundColor: colors.success,
+      justifyContent: 'center',
+      paddingLeft: 24,
+      alignItems: 'flex-start',
+    },
+    rightAction: {
+      flex: 1,
+      backgroundColor: colors.danger,
+      justifyContent: 'center',
+      paddingRight: 24,
+      alignItems: 'flex-end',
+    },
+    actionText: { color: colors.white, fontWeight: '700', fontSize: 12, marginTop: 4 },
+  });
+}

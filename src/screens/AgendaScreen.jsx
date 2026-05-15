@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { getAppointmentsByDate, getAllAppointmentDates, updateAppointmentStatus, finalizeAppointment, autoTransitionOngoing } from '../database/appointmentsDb';
 import AgendamentoCard from '../components/AgendamentoCard';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
@@ -33,6 +34,7 @@ function localDateStr() {
 
 export default function AgendaScreen() {
   const hoje = localDateStr();
+  const { primaryColor } = useTheme();
   const [selectedDate, setSelectedDate] = useState(hoje);
   const [agendamentosDia, setAgendamentosDia] = useState([]);
   const [datesWithAppts, setDatesWithAppts] = useState([]);
@@ -103,12 +105,12 @@ export default function AgendaScreen() {
   const markedDates = {};
   datesWithAppts.forEach((d) => {
     if (d !== selectedDate) {
-      markedDates[d] = { marked: true, dotColor: colors.gold };
+      markedDates[d] = { marked: true, dotColor: primaryColor };
     }
   });
   markedDates[selectedDate] = {
     selected: true,
-    selectedColor: colors.gold,
+    selectedColor: primaryColor,
     marked: datesWithAppts.includes(selectedDate),
     dotColor: colors.background,
   };
@@ -131,13 +133,13 @@ export default function AgendaScreen() {
         theme={{
           backgroundColor: colors.background,
           calendarBackground: colors.surface,
-          textSectionTitleColor: colors.gold,
-          selectedDayBackgroundColor: colors.gold,
+          textSectionTitleColor: primaryColor,
+          selectedDayBackgroundColor: primaryColor,
           selectedDayTextColor: colors.background,
-          todayTextColor: colors.gold,
+          todayTextColor: primaryColor,
           dayTextColor: colors.white,
           textDisabledColor: colors.textMuted,
-          arrowColor: colors.gold,
+          arrowColor: primaryColor,
           monthTextColor: colors.white,
           textMonthFontWeight: '700',
           textDayFontWeight: '500',

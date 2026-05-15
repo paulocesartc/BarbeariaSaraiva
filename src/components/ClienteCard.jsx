@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 export default function ClienteCard({ cliente, onPress }) {
+  const { primaryColor } = useTheme();
+  const styles = useMemo(() => makeStyles(primaryColor), [primaryColor]);
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.avatar}>
@@ -36,51 +40,53 @@ export default function ClienteCard({ cliente, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.gold,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    color: colors.background,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  info: {
-    flex: 1,
-    marginLeft: 14,
-  },
-  nome: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  telefoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 3,
-  },
-  telefone: {
-    color: colors.textSecondary,
-    fontSize: 13,
-  },
-  obs: {
-    color: colors.textMuted,
-    fontSize: 12,
-    marginTop: 3,
-    fontStyle: 'italic',
-  },
-});
+function makeStyles(primary) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    avatarText: {
+      color: colors.background,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    info: {
+      flex: 1,
+      marginLeft: 14,
+    },
+    nome: {
+      color: colors.white,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    telefoneRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: 3,
+    },
+    telefone: {
+      color: colors.textSecondary,
+      fontSize: 13,
+    },
+    obs: {
+      color: colors.textMuted,
+      fontSize: 12,
+      marginTop: 3,
+      fontStyle: 'italic',
+    },
+  });
+}

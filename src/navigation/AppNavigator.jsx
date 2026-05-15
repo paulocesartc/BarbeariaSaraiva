@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 import DashboardScreen from '../screens/DashboardScreen';
 import AgendaScreen from '../screens/AgendaScreen';
@@ -15,24 +16,32 @@ import ServicosScreen from '../screens/ServicosScreen';
 import NovoAgendamentoScreen from '../screens/NovoAgendamentoScreen';
 import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
 import DiasBloqueadosScreen from '../screens/DiasBloqueadosScreen';
+import HorariosScreen from '../screens/HorariosScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function CustomTabButton({ children, onPress }) {
+  const { primaryColor } = useTheme();
   return (
     <TouchableOpacity
       style={styles.customTabBtn}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={styles.customTabBtnInner}>{children}</View>
+      <View style={[
+        styles.customTabBtnInner,
+        { backgroundColor: primaryColor, shadowColor: primaryColor },
+      ]}>
+        {children}
+      </View>
     </TouchableOpacity>
   );
 }
 
 function TabNavigator() {
   const insets = useSafeAreaInsets();
+  const { primaryColor } = useTheme();
 
   return (
     <Tab.Navigator
@@ -43,7 +52,7 @@ function TabNavigator() {
           height: 70 + insets.bottom,
           paddingBottom: insets.bottom + 10,
         },
-        tabBarActiveTintColor: colors.gold,
+        tabBarActiveTintColor: primaryColor,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: styles.tabLabel,
       }}
@@ -144,6 +153,11 @@ export default function AppNavigator() {
           component={DiasBloqueadosScreen}
           options={{ animation: 'slide_from_right' }}
         />
+        <Stack.Screen
+          name="Horarios"
+          component={HorariosScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -173,10 +187,8 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 29,
-    backgroundColor: colors.gold,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.gold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TextInput, Modal,
   ScrollView, KeyboardAvoidingView, TouchableOpacity, Switch,
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Contacts from 'expo-contacts';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { getAllClients, createClient, updateClient, setClientActive, importClients } from '../database/clientsDb';
 import { formatPhone } from '../utils/phone';
 import { showToast } from '../hooks/useToast';
@@ -15,17 +16,17 @@ import { showToast } from '../hooks/useToast';
 export default function ClientesScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const fabBottom = 70 + insets.bottom + 30;
+  const { primaryColor } = useTheme();
+  const styles = useMemo(() => makeStyles(primaryColor), [primaryColor]);
 
   const [clientes, setClientes] = useState([]);
   const [busca, setBusca] = useState('');
   const [showInactive, setShowInactive] = useState(false);
 
-  // Modal novo/editar
   const [modalVisible, setModalVisible] = useState(false);
-  const [editando, setEditando] = useState(null); // null = novo
+  const [editando, setEditando] = useState(null);
   const [form, setForm] = useState({ name: '', phone: '', description: '' });
 
-  // Modal importar contatos
   const [importModal, setImportModal] = useState(false);
   const [contactList, setContactList] = useState([]);
   const [selected, setSelected] = useState(new Set());
@@ -48,7 +49,6 @@ export default function ClientesScreen({ navigation }) {
     (c.phone ?? '').includes(busca)
   );
 
-  // ── Abrir formulário ───────────────────────────────────────────
   function abrirNovo() {
     setEditando(null);
     setForm({ name: '', phone: '', description: '' });
@@ -61,7 +61,6 @@ export default function ClientesScreen({ navigation }) {
     setModalVisible(true);
   }
 
-  // ── Salvar (criar ou editar) ───────────────────────────────────
   async function handleSalvar() {
     const name = form.name.trim();
     if (!name) return showToast({ type: 'error', text1: 'Campo obrigatório', text2: 'Informe o nome do cliente.' });
@@ -81,7 +80,6 @@ export default function ClientesScreen({ navigation }) {
     }
   }
 
-  // ── Ativar / Inativar ──────────────────────────────────────────
   async function handleToggleActive(cliente) {
     await setClientActive(cliente.id, !cliente.active);
     showToast({
@@ -92,7 +90,6 @@ export default function ClientesScreen({ navigation }) {
     carregar();
   }
 
-  // ── Importar contatos ──────────────────────────────────────────
   async function abrirImport() {
     setLoadingContacts(true);
     setImportModal(true);
@@ -111,7 +108,6 @@ export default function ClientesScreen({ navigation }) {
       sort: Contacts.SortTypes.FirstName,
     });
 
-    // Filtra só quem tem nome e pelo menos um telefone
     const validos = data
       .filter((c) => c.name && c.phoneNumbers?.length > 0)
       .map((c) => ({
@@ -170,7 +166,6 @@ export default function ClientesScreen({ navigation }) {
 
   const sheetPb = Math.max(insets.bottom + 8, 24);
 
-  // ── Render card cliente ────────────────────────────────────────
   const renderCliente = ({ item }) => (
     <TouchableOpacity
       style={[styles.card, !item.active && styles.cardInactive]}
@@ -199,14 +194,13 @@ export default function ClientesScreen({ navigation }) {
       </View>
 
       <TouchableOpacity onPress={() => abrirEdicao(item)} style={styles.btnEditar}>
-        <MaterialCommunityIcons name="pencil-outline" size={18} color={colors.gold} />
+        <MaterialCommunityIcons name="pencil-outline" size={18} color={primaryColor} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Clientes</Text>
@@ -218,7 +212,6 @@ export default function ClientesScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Busca + toggle inativos */}
       <View style={styles.searchRow}>
         <View style={styles.searchContainer}>
           <MaterialCommunityIcons name="magnify" size={20} color={colors.textMuted} />
@@ -262,13 +255,11 @@ export default function ClientesScreen({ navigation }) {
         }
       />
 
-      {/* Botão Novo Cliente fixo no rodapé */}
       <TouchableOpacity style={[styles.btnNovoCliente, { bottom: fabBottom - 12 }]} onPress={abrirNovo} activeOpacity={0.85}>
         <MaterialCommunityIcons name="account-plus" size={20} color={colors.background} />
         <Text style={styles.btnNovoClienteText}>Novo Cliente</Text>
       </TouchableOpacity>
 
-      {/* ── Modal: Novo / Editar Cliente ── */}
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setModalVisible(false)} />
@@ -308,7 +299,6 @@ export default function ClientesScreen({ navigation }) {
                   numberOfLines={3}
                 />
 
-                {/* Switch ativar/inativar — só na edição */}
                 {editando && (
                   <View style={styles.switchRow}>
                     <View>
@@ -324,8 +314,8 @@ export default function ClientesScreen({ navigation }) {
                         setEditando((e) => ({ ...e, active: val ? 1 : 0 }));
                         carregar();
                       }}
-                      trackColor={{ false: colors.border, true: `${colors.gold}66` }}
-                      thumbColor={editando.active ? colors.gold : colors.textMuted}
+                      trackColor={{ false: colors.border, true: `${primaryColor}66` }}
+                      thumbColor={editando.active ? primaryColor : colors.textMuted}
                     />
                   </View>
                 )}
@@ -344,11 +334,8 @@ export default function ClientesScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* ── Modal: Importar Contatos (tela cheia) ── */}
       <Modal visible={importModal} animationType="slide" onRequestClose={() => setImportModal(false)}>
         <KeyboardAvoidingView behavior="padding" style={styles.importScreen}>
-
-          {/* Topo */}
           <View style={[styles.importTopBar, { paddingTop: insets.top + 12 }]}>
             <TouchableOpacity onPress={() => setImportModal(false)} style={styles.importBackBtn}>
               <MaterialCommunityIcons name="arrow-left" size={24} color={colors.white} />
@@ -373,12 +360,11 @@ export default function ClientesScreen({ navigation }) {
 
           {loadingContacts ? (
             <View style={styles.loadingBox}>
-              <MaterialCommunityIcons name="account-multiple" size={48} color={colors.gold} />
+              <MaterialCommunityIcons name="account-multiple" size={48} color={primaryColor} />
               <Text style={styles.loadingText}>Carregando contatos...</Text>
             </View>
           ) : (
             <>
-              {/* Busca */}
               <View style={styles.importSearch}>
                 <MaterialCommunityIcons name="magnify" size={18} color={colors.textMuted} />
                 <TextInput
@@ -395,7 +381,6 @@ export default function ClientesScreen({ navigation }) {
                 )}
               </View>
 
-              {/* Lista */}
               <FlatList
                 data={contatosFiltrados}
                 keyExtractor={(item) => item.id}
@@ -430,7 +415,6 @@ export default function ClientesScreen({ navigation }) {
                 }
               />
 
-              {/* Botão importar fixo no rodapé */}
               <View style={[styles.importFooter, { paddingBottom: insets.bottom + 16 }]}>
                 <TouchableOpacity
                   onPress={handleImportar}
@@ -450,154 +434,143 @@ export default function ClientesScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 20 },
-
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: 60, marginBottom: 16,
-  },
-  title: { color: colors.white, fontSize: 28, fontWeight: '800' },
-  subtitle: { color: colors.textSecondary, fontSize: 14, marginTop: 2 },
-  btnImport: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: colors.gold, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10,
-  },
-  btnImportText: { color: colors.background, fontWeight: '700', fontSize: 14 },
-
-  searchRow: { marginBottom: 8 },
-  searchContainer: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.surface, borderRadius: 12,
-    paddingHorizontal: 14, paddingVertical: 10, gap: 10,
-  },
-  searchInput: { flex: 1, color: colors.white, fontSize: 15 },
-
-  toggleRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    marginBottom: 14, alignSelf: 'flex-start',
-  },
-  toggleText: { color: colors.textSecondary, fontSize: 13 },
-
-  card: {
-    backgroundColor: colors.surface, borderRadius: 14,
-    padding: 14, marginBottom: 10, flexDirection: 'row',
-    alignItems: 'center', borderWidth: 1, borderColor: 'transparent',
-  },
-  cardInactive: { opacity: 0.55 },
-  avatar: {
-    width: 46, height: 46, borderRadius: 23,
-    backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center',
-  },
-  avatarInactive: { backgroundColor: colors.textMuted },
-  avatarText: { color: colors.background, fontSize: 16, fontWeight: '800' },
-  cardInfo: { flex: 1, marginLeft: 12 },
-  cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cardName: { color: colors.white, fontSize: 15, fontWeight: '600' },
-  textInactive: { color: colors.textMuted },
-  inactiveBadge: {
-    backgroundColor: colors.border, borderRadius: 4,
-    paddingHorizontal: 6, paddingVertical: 2,
-  },
-  inactiveBadgeText: { color: colors.textMuted, fontSize: 10, fontWeight: '700' },
-  cardPhone: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
-  cardDesc: { color: colors.textMuted, fontSize: 12, marginTop: 3, fontStyle: 'italic' },
-  btnEditar: { padding: 6 },
-
-  emptyState: { alignItems: 'center', paddingVertical: 40 },
-  emptyText: { color: colors.textMuted, marginTop: 10, fontSize: 14 },
-
-  btnNovoCliente: {
-    position: 'absolute', right: 20,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    backgroundColor: colors.gold, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14,
-    elevation: 8, shadowColor: colors.gold,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
-  },
-  btnNovoClienteText: { color: colors.background, fontWeight: '700', fontSize: 14 },
-
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: 24,
-  },
-  sheetHandle: {
-    width: 40, height: 4, borderRadius: 2,
-    backgroundColor: colors.textMuted, alignSelf: 'center', marginBottom: 20,
-  },
-  sheetTitle: { color: colors.gold, fontSize: 20, fontWeight: '800', marginBottom: 20 },
-
-  label: {
-    color: colors.textSecondary, fontSize: 12, fontWeight: '600',
-    marginBottom: 6, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5,
-  },
-  input: {
-    backgroundColor: colors.background, borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 12,
-    color: colors.white, fontSize: 15, marginBottom: 14,
-    borderWidth: 1, borderColor: colors.border,
-  },
-  inputMulti: { height: 90, textAlignVertical: 'top' },
-
-  switchRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: colors.background, borderRadius: 12,
-    padding: 14, marginBottom: 16,
-    borderWidth: 1, borderColor: colors.border,
-  },
-  switchLabel: { color: colors.white, fontWeight: '600', fontSize: 15 },
-  switchSub: { color: colors.textMuted, fontSize: 12, marginTop: 2, maxWidth: 220 },
-
-  modalBtns: { flexDirection: 'row', gap: 10 },
-  btnCancelar: {
-    flex: 1, padding: 14, borderRadius: 12,
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center',
-  },
-  btnCancelarText: { color: colors.textSecondary, fontWeight: '600' },
-  btnSalvar: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: colors.gold, alignItems: 'center' },
-  btnImportConfirm: { width: '100%', padding: 16, borderRadius: 14, backgroundColor: colors.gold, alignItems: 'center' },
-  btnSalvarText: { color: colors.background, fontWeight: '700', fontSize: 15 },
-
-  // Tela de importação (modal fullscreen)
-  importScreen: { flex: 1, backgroundColor: colors.background },
-  importTopBar: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 20, paddingBottom: 12,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
-  },
-  importBackBtn: { padding: 4 },
-  importTitle: { color: colors.white, fontSize: 18, fontWeight: '700' },
-  importCount: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
-  btnTodos: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.gold },
-  btnTodosText: { color: colors.gold, fontSize: 13, fontWeight: '600' },
-  importSearch: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: colors.surface, marginHorizontal: 20, marginVertical: 12,
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
-  },
-  importFooter: {
-    paddingHorizontal: 20, paddingTop: 12,
-    borderTopWidth: 1, borderTopColor: colors.border,
-    backgroundColor: colors.background,
-  },
-  loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  loadingText: { color: colors.textSecondary, fontSize: 15 },
-
-  contactItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingVertical: 10, paddingHorizontal: 4,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
-  },
-  contactItemSelected: { backgroundColor: `${colors.gold}0D`, borderRadius: 10, paddingHorizontal: 8 },
-  contactAvatar: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: colors.border,
-  },
-  contactAvatarSelected: { backgroundColor: colors.gold, borderColor: colors.gold },
-  contactAvatarText: { color: colors.gold, fontWeight: '700', fontSize: 15 },
-  contactInfo: { flex: 1 },
-  contactName: { color: colors.white, fontSize: 14, fontWeight: '600' },
-  contactPhone: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
-});
+function makeStyles(primary) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 20 },
+    header: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      paddingTop: 60, marginBottom: 16,
+    },
+    title: { color: colors.white, fontSize: 28, fontWeight: '800' },
+    subtitle: { color: colors.textSecondary, fontSize: 14, marginTop: 2 },
+    btnImport: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      backgroundColor: primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10,
+    },
+    btnImportText: { color: colors.background, fontWeight: '700', fontSize: 14 },
+    searchRow: { marginBottom: 8 },
+    searchContainer: {
+      flexDirection: 'row', alignItems: 'center',
+      backgroundColor: colors.surface, borderRadius: 12,
+      paddingHorizontal: 14, paddingVertical: 10, gap: 10,
+    },
+    searchInput: { flex: 1, color: colors.white, fontSize: 15 },
+    toggleRow: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      marginBottom: 14, alignSelf: 'flex-start',
+    },
+    toggleText: { color: colors.textSecondary, fontSize: 13 },
+    card: {
+      backgroundColor: colors.surface, borderRadius: 14,
+      padding: 14, marginBottom: 10, flexDirection: 'row',
+      alignItems: 'center', borderWidth: 1, borderColor: 'transparent',
+    },
+    cardInactive: { opacity: 0.55 },
+    avatar: {
+      width: 46, height: 46, borderRadius: 23,
+      backgroundColor: primary, alignItems: 'center', justifyContent: 'center',
+    },
+    avatarInactive: { backgroundColor: colors.textMuted },
+    avatarText: { color: colors.background, fontSize: 16, fontWeight: '800' },
+    cardInfo: { flex: 1, marginLeft: 12 },
+    cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    cardName: { color: colors.white, fontSize: 15, fontWeight: '600' },
+    textInactive: { color: colors.textMuted },
+    inactiveBadge: {
+      backgroundColor: colors.border, borderRadius: 4,
+      paddingHorizontal: 6, paddingVertical: 2,
+    },
+    inactiveBadgeText: { color: colors.textMuted, fontSize: 10, fontWeight: '700' },
+    cardPhone: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+    cardDesc: { color: colors.textMuted, fontSize: 12, marginTop: 3, fontStyle: 'italic' },
+    btnEditar: { padding: 6 },
+    emptyState: { alignItems: 'center', paddingVertical: 40 },
+    emptyText: { color: colors.textMuted, marginTop: 10, fontSize: 14 },
+    btnNovoCliente: {
+      position: 'absolute', right: 20,
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+      backgroundColor: primary, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14,
+      elevation: 8, shadowColor: primary,
+      shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
+    },
+    btnNovoClienteText: { color: colors.background, fontWeight: '700', fontSize: 14 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 24, borderTopRightRadius: 24,
+      padding: 24,
+    },
+    sheetHandle: {
+      width: 40, height: 4, borderRadius: 2,
+      backgroundColor: colors.textMuted, alignSelf: 'center', marginBottom: 20,
+    },
+    sheetTitle: { color: primary, fontSize: 20, fontWeight: '800', marginBottom: 20 },
+    label: {
+      color: colors.textSecondary, fontSize: 12, fontWeight: '600',
+      marginBottom: 6, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5,
+    },
+    input: {
+      backgroundColor: colors.background, borderRadius: 10,
+      paddingHorizontal: 14, paddingVertical: 12,
+      color: colors.white, fontSize: 15, marginBottom: 14,
+      borderWidth: 1, borderColor: colors.border,
+    },
+    inputMulti: { height: 90, textAlignVertical: 'top' },
+    switchRow: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: colors.background, borderRadius: 12,
+      padding: 14, marginBottom: 16,
+      borderWidth: 1, borderColor: colors.border,
+    },
+    switchLabel: { color: colors.white, fontWeight: '600', fontSize: 15 },
+    switchSub: { color: colors.textMuted, fontSize: 12, marginTop: 2, maxWidth: 220 },
+    modalBtns: { flexDirection: 'row', gap: 10 },
+    btnCancelar: {
+      flex: 1, padding: 14, borderRadius: 12,
+      borderWidth: 1, borderColor: colors.border, alignItems: 'center',
+    },
+    btnCancelarText: { color: colors.textSecondary, fontWeight: '600' },
+    btnSalvar: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: primary, alignItems: 'center' },
+    btnImportConfirm: { width: '100%', padding: 16, borderRadius: 14, backgroundColor: primary, alignItems: 'center' },
+    btnSalvarText: { color: colors.background, fontWeight: '700', fontSize: 15 },
+    importScreen: { flex: 1, backgroundColor: colors.background },
+    importTopBar: {
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      paddingHorizontal: 20, paddingBottom: 12,
+      borderBottomWidth: 1, borderBottomColor: colors.border,
+    },
+    importBackBtn: { padding: 4 },
+    importTitle: { color: colors.white, fontSize: 18, fontWeight: '700' },
+    importCount: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+    btnTodos: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: primary },
+    btnTodosText: { color: primary, fontSize: 13, fontWeight: '600' },
+    importSearch: {
+      flexDirection: 'row', alignItems: 'center', gap: 10,
+      backgroundColor: colors.surface, marginHorizontal: 20, marginVertical: 12,
+      borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
+    },
+    importFooter: {
+      paddingHorizontal: 20, paddingTop: 12,
+      borderTopWidth: 1, borderTopColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
+    loadingText: { color: colors.textSecondary, fontSize: 15 },
+    contactItem: {
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      paddingVertical: 10, paddingHorizontal: 4,
+      borderBottomWidth: 1, borderBottomColor: colors.border,
+    },
+    contactItemSelected: { backgroundColor: `${primary}0D`, borderRadius: 10, paddingHorizontal: 8 },
+    contactAvatar: {
+      width: 38, height: 38, borderRadius: 19,
+      backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
+      borderWidth: 1, borderColor: colors.border,
+    },
+    contactAvatarSelected: { backgroundColor: primary, borderColor: primary },
+    contactAvatarText: { color: primary, fontWeight: '700', fontSize: 15 },
+    contactInfo: { flex: 1 },
+    contactName: { color: colors.white, fontSize: 14, fontWeight: '600' },
+    contactPhone: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+  });
+}

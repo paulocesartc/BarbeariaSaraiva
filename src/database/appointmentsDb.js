@@ -1,5 +1,5 @@
 import { supabase, generateUUID } from './db';
-import { getLunchTime } from './settingsDb';
+import { getLunchTime, getDisabledSlots } from './settingsDb';
 
 export async function getAppointmentsByDate(date) {
   const { data, error } = await supabase
@@ -99,13 +99,14 @@ export async function hasConflict(date, time, duration_min, excludeId = null) {
 }
 
 export async function getAvailableSlots(date, duration_min) {
-  const [{ data, error }, lunchTimeStr] = await Promise.all([
+  const [{ data, error }, lunchTimeStr, disabledSlots] = await Promise.all([
     supabase
       .from('appointments')
       .select('time, duration_min')
       .eq('date', date)
       .not('status', 'in', '("cancelado")'),
     getLunchTime(),
+    getDisabledSlots(),
   ]);
   if (error) throw error;
 
@@ -116,12 +117,14 @@ export async function getAvailableSlots(date, duration_min) {
   const END = 21 * 60;
   const STEP = 60;
   const LUNCH = toMinutes(lunchTimeStr);
+  const disabledSet = new Set(disabledSlots);
 
   const slots = [];
   for (let t = START; t + duration_min <= END; t += STEP) {
-    // Bloqueia o slot do almoço (o slot que começa exatamente no horário configurado)
+    const timeStr = fromMinutes(t);
+    if (disabledSet.has(timeStr)) continue;
     if (t === LUNCH) {
-      slots.push({ time: fromMinutes(t), available: false, lunch: true });
+      slots.push({ time: timeStr, available: false, lunch: true });
       continue;
     }
     let conflict = false;
@@ -130,7 +133,7 @@ export async function getAvailableSlots(date, duration_min) {
       const existEnd = existStart + appt.duration_min;
       if (t < existEnd && t + duration_min > existStart) { conflict = true; break; }
     }
-    slots.push({ time: fromMinutes(t), available: !conflict });
+    slots.push({ time: timeStr, available: !conflict });
   }
   return slots;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Modal,
   TouchableOpacity, Switch, TextInput, KeyboardAvoidingView,
@@ -7,6 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { getClientById, setClientActive, updateClient } from '../database/clientsDb';
 import { getAppointmentsByClient } from '../database/appointmentsDb';
 import { PAYMENT_METHODS } from '../components/PaymentMethodModal';
@@ -29,6 +30,8 @@ function formatHistoryDate(d) {
 export default function ClientePerfilScreen({ route, navigation }) {
   const { clienteId } = route.params;
   const insets = useSafeAreaInsets();
+  const { primaryColor } = useTheme();
+  const styles = useMemo(() => makeStyles(primaryColor), [primaryColor]);
 
   const [cliente, setCliente] = useState(null);
   const [historico, setHistorico] = useState([]);
@@ -90,7 +93,6 @@ export default function ClientePerfilScreen({ route, navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}
       >
-        {/* Barra de navegação */}
         <View style={[styles.navBar, { paddingTop: insets.top + 16 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navBtn}>
             <MaterialCommunityIcons name="arrow-left" size={24} color={colors.white} />
@@ -101,7 +103,6 @@ export default function ClientePerfilScreen({ route, navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Header */}
         <View style={styles.profileHeader}>
           <View style={[styles.avatarLarge, !isActive && styles.avatarInactive]}>
             <Text style={styles.avatarText}>{cliente.avatar}</Text>
@@ -118,7 +119,7 @@ export default function ClientePerfilScreen({ route, navigation }) {
 
           {cliente.phone ? (
             <View style={styles.contactRow}>
-              <MaterialCommunityIcons name="phone" size={15} color={colors.gold} />
+              <MaterialCommunityIcons name="phone" size={15} color={primaryColor} />
               <Text style={styles.telefone}>{cliente.phone}</Text>
             </View>
           ) : null}
@@ -131,7 +132,6 @@ export default function ClientePerfilScreen({ route, navigation }) {
           ) : null}
         </View>
 
-        {/* Stats */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{cliente.total_appointments}</Text>
@@ -143,7 +143,6 @@ export default function ClientePerfilScreen({ route, navigation }) {
           </View>
         </View>
 
-        {/* Switch ativo/inativo */}
         <View style={styles.switchCard}>
           <View>
             <Text style={styles.switchLabel}>Cliente ativo</Text>
@@ -154,12 +153,11 @@ export default function ClientePerfilScreen({ route, navigation }) {
           <Switch
             value={isActive}
             onValueChange={handleToggleActive}
-            trackColor={{ false: colors.border, true: `${colors.gold}66` }}
-            thumbColor={isActive ? colors.gold : colors.textMuted}
+            trackColor={{ false: colors.border, true: `${primaryColor}66` }}
+            thumbColor={isActive ? primaryColor : colors.textMuted}
           />
         </View>
 
-        {/* Histórico */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Histórico de Atendimentos</Text>
           {historico.length === 0 ? (
@@ -197,7 +195,6 @@ export default function ClientePerfilScreen({ route, navigation }) {
         </View>
       </ScrollView>
 
-      {/* Modal Editar */}
       <Modal visible={editModal} transparent animationType="slide" onRequestClose={() => setEditModal(false)}>
         <View style={styles.modalOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setEditModal(false)} />
@@ -250,100 +247,94 @@ export default function ClientePerfilScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 20 },
-
-  navBar: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', paddingBottom: 10,
-  },
-  navBtn: { padding: 4 },
-  btnEditarPerfil: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: colors.gold, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10,
-  },
-  btnEditarPerfilText: { color: colors.background, fontWeight: '700', fontSize: 14 },
-
-  profileHeader: {
-    alignItems: 'center', paddingBottom: 24,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
-  },
-  avatarLarge: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center',
-    marginBottom: 14,
-  },
-  avatarInactive: { backgroundColor: colors.textMuted },
-  avatarText: { color: colors.background, fontSize: 28, fontWeight: '800' },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  nome: { color: colors.white, fontSize: 24, fontWeight: '700' },
-  inactiveBadge: { backgroundColor: colors.border, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  inactiveBadgeText: { color: colors.textMuted, fontSize: 11, fontWeight: '700' },
-  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
-  telefone: { color: colors.textSecondary, fontSize: 15 },
-  obsBox: {
-    flexDirection: 'row', alignItems: 'flex-start', gap: 8,
-    marginTop: 14, backgroundColor: colors.surface,
-    padding: 12, borderRadius: 10, maxWidth: '90%',
-  },
-  obsText: { color: colors.textSecondary, fontSize: 13, flex: 1, fontStyle: 'italic' },
-
-  statsRow: { flexDirection: 'row', gap: 12, marginTop: 20, marginBottom: 16 },
-  statCard: {
-    flex: 1, backgroundColor: colors.surface, borderRadius: 14,
-    padding: 16, alignItems: 'center', borderWidth: 1, borderColor: colors.border,
-  },
-  statValue: { color: colors.gold, fontSize: 20, fontWeight: '800' },
-  statLabel: { color: colors.textSecondary, fontSize: 12, marginTop: 4 },
-
-  switchCard: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: colors.surface, borderRadius: 14,
-    padding: 16, marginBottom: 24,
-    borderWidth: 1, borderColor: colors.border,
-  },
-  switchLabel: { color: colors.white, fontWeight: '600', fontSize: 15 },
-  switchSub: { color: colors.textMuted, fontSize: 12, marginTop: 2, maxWidth: 220 },
-
-  section: { marginBottom: 20 },
-  sectionTitle: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 16 },
-  emptyHistory: {
-    alignItems: 'center', paddingVertical: 32,
-    backgroundColor: colors.surface, borderRadius: 16, gap: 10,
-  },
-  emptyText: { color: colors.textMuted, fontSize: 13, textAlign: 'center', maxWidth: 220 },
-
-  historyCard: {
-    backgroundColor: colors.surface, borderRadius: 12, padding: 14,
-    borderLeftWidth: 3, marginBottom: 8,
-  },
-  historyHeader: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 6,
-  },
-  historyDate: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
-  historyStatus: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  historyStatusText: { fontSize: 11, fontWeight: '600' },
-  historyBody: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  historyService: { color: colors.white, fontSize: 14, fontWeight: '600', flex: 1 },
-  historyPrice: { color: colors.gold, fontSize: 14, fontWeight: '700' },
-  historyPayRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
-  historyPayText: { fontSize: 11, fontWeight: '600' },
-
-  // Modal
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
-  sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textMuted, alignSelf: 'center', marginBottom: 20 },
-  sheetTitle: { color: colors.gold, fontSize: 20, fontWeight: '800', marginBottom: 20 },
-  label: { color: colors.textSecondary, fontSize: 12, fontWeight: '600', marginBottom: 6, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
-  input: { backgroundColor: colors.background, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: colors.white, fontSize: 15, marginBottom: 14, borderWidth: 1, borderColor: colors.border },
-  inputMulti: { height: 90, textAlignVertical: 'top' },
-  modalBtns: { flexDirection: 'row', gap: 10 },
-  btnCancelar: { flex: 1, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
-  btnCancelarText: { color: colors.textSecondary, fontWeight: '600' },
-  btnSalvar: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: colors.gold, alignItems: 'center' },
-  btnSalvarText: { color: colors.background, fontWeight: '700', fontSize: 15 },
-});
+function makeStyles(primary) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 20 },
+    navBar: {
+      flexDirection: 'row', alignItems: 'center',
+      justifyContent: 'space-between', paddingBottom: 10,
+    },
+    navBtn: { padding: 4 },
+    btnEditarPerfil: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      backgroundColor: primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10,
+    },
+    btnEditarPerfilText: { color: colors.background, fontWeight: '700', fontSize: 14 },
+    profileHeader: {
+      alignItems: 'center', paddingBottom: 24,
+      borderBottomWidth: 1, borderBottomColor: colors.border,
+    },
+    avatarLarge: {
+      width: 80, height: 80, borderRadius: 40,
+      backgroundColor: primary, alignItems: 'center', justifyContent: 'center',
+      marginBottom: 14,
+    },
+    avatarInactive: { backgroundColor: colors.textMuted },
+    avatarText: { color: colors.background, fontSize: 28, fontWeight: '800' },
+    nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    nome: { color: colors.white, fontSize: 24, fontWeight: '700' },
+    inactiveBadge: { backgroundColor: colors.border, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+    inactiveBadgeText: { color: colors.textMuted, fontSize: 11, fontWeight: '700' },
+    contactRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+    telefone: { color: colors.textSecondary, fontSize: 15 },
+    obsBox: {
+      flexDirection: 'row', alignItems: 'flex-start', gap: 8,
+      marginTop: 14, backgroundColor: colors.surface,
+      padding: 12, borderRadius: 10, maxWidth: '90%',
+    },
+    obsText: { color: colors.textSecondary, fontSize: 13, flex: 1, fontStyle: 'italic' },
+    statsRow: { flexDirection: 'row', gap: 12, marginTop: 20, marginBottom: 16 },
+    statCard: {
+      flex: 1, backgroundColor: colors.surface, borderRadius: 14,
+      padding: 16, alignItems: 'center', borderWidth: 1, borderColor: colors.border,
+    },
+    statValue: { color: primary, fontSize: 20, fontWeight: '800' },
+    statLabel: { color: colors.textSecondary, fontSize: 12, marginTop: 4 },
+    switchCard: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: colors.surface, borderRadius: 14,
+      padding: 16, marginBottom: 24,
+      borderWidth: 1, borderColor: colors.border,
+    },
+    switchLabel: { color: colors.white, fontWeight: '600', fontSize: 15 },
+    switchSub: { color: colors.textMuted, fontSize: 12, marginTop: 2, maxWidth: 220 },
+    section: { marginBottom: 20 },
+    sectionTitle: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 16 },
+    emptyHistory: {
+      alignItems: 'center', paddingVertical: 32,
+      backgroundColor: colors.surface, borderRadius: 16, gap: 10,
+    },
+    emptyText: { color: colors.textMuted, fontSize: 13, textAlign: 'center', maxWidth: 220 },
+    historyCard: {
+      backgroundColor: colors.surface, borderRadius: 12, padding: 14,
+      borderLeftWidth: 3, marginBottom: 8,
+    },
+    historyHeader: {
+      flexDirection: 'row', justifyContent: 'space-between',
+      alignItems: 'center', marginBottom: 6,
+    },
+    historyDate: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
+    historyStatus: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    historyStatusText: { fontSize: 11, fontWeight: '600' },
+    historyBody: {
+      flexDirection: 'row', justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    historyService: { color: colors.white, fontSize: 14, fontWeight: '600', flex: 1 },
+    historyPrice: { color: primary, fontSize: 14, fontWeight: '700' },
+    historyPayRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
+    historyPayText: { fontSize: 11, fontWeight: '600' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+    sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
+    sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textMuted, alignSelf: 'center', marginBottom: 20 },
+    sheetTitle: { color: primary, fontSize: 20, fontWeight: '800', marginBottom: 20 },
+    label: { color: colors.textSecondary, fontSize: 12, fontWeight: '600', marginBottom: 6, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+    input: { backgroundColor: colors.background, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: colors.white, fontSize: 15, marginBottom: 14, borderWidth: 1, borderColor: colors.border },
+    inputMulti: { height: 90, textAlignVertical: 'top' },
+    modalBtns: { flexDirection: 'row', gap: 10 },
+    btnCancelar: { flex: 1, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
+    btnCancelarText: { color: colors.textSecondary, fontWeight: '600' },
+    btnSalvar: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: primary, alignItems: 'center' },
+    btnSalvarText: { color: colors.background, fontWeight: '700', fontSize: 15 },
+  });
+}

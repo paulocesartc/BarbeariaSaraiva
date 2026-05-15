@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Image, TouchableOpacity,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import {
   getAppointmentsByDate,
   getDayRevenue,
@@ -13,6 +14,7 @@ import {
   finalizeAppointment,
   autoTransitionOngoing,
 } from '../database/appointmentsDb';
+import { getLogoUrl } from '../database/settingsDb';
 import AgendamentoCard from '../components/AgendamentoCard';
 import PremiumButton from '../components/PremiumButton';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
@@ -26,9 +28,13 @@ function localDateStr() {
 
 export default function DashboardScreen({ navigation }) {
   const hoje = localDateStr();
+  const { primaryColor } = useTheme();
+  const styles = useMemo(() => makeStyles(primaryColor), [primaryColor]);
+
   const [agendamentosHoje, setAgendamentosHoje] = useState([]);
   const [faturamento, setFaturamento] = useState(0);
   const [totalDia, setTotalDia] = useState(0);
+  const [logoUri, setLogoUri] = useState(null);
   const [cancelModal, setCancelModal] = useState({ visible: false, item: null });
   const [paymentModal, setPaymentModal] = useState({ visible: false, item: null });
 
@@ -47,6 +53,7 @@ export default function DashboardScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       loadData();
+      getLogoUrl().then((u) => { if (u) setLogoUri(u); }).catch(() => {});
     }, [loadData])
   );
 
@@ -107,7 +114,13 @@ export default function DashboardScreen({ navigation }) {
     <View style={styles.root}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          <View style={styles.logoWrap}>
+            <Image
+              source={logoUri ? { uri: logoUri } : require('../assets/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>Barbearia Saraiva</Text>
             <Text style={styles.date}>
@@ -121,22 +134,22 @@ export default function DashboardScreen({ navigation }) {
             style={styles.settingsBtn}
             activeOpacity={0.7}
           >
-            <MaterialCommunityIcons name="cog-outline" size={24} color={colors.gold} />
+            <MaterialCommunityIcons name="cog-outline" size={24} color={primaryColor} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <MaterialCommunityIcons name="account-group" size={28} color={colors.gold} />
+            <MaterialCommunityIcons name="account-group" size={28} color={primaryColor} />
             <Text style={styles.statValue}>{totalDia}</Text>
             <Text style={styles.statLabel}>Clientes hoje</Text>
           </View>
-          <View style={[styles.statCard, styles.statCardGold]}>
+          <View style={[styles.statCard, styles.statCardPrimary]}>
             <MaterialCommunityIcons name="cash" size={28} color={colors.background} />
             <Text style={[styles.statValue, { color: colors.background }]}>
               R$ {faturamento.toFixed(2)}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.goldDark }]}>Faturamento</Text>
+            <Text style={[styles.statLabel, { color: `${primaryColor}CC` }]}>Faturamento</Text>
           </View>
         </View>
 
@@ -214,36 +227,39 @@ export default function DashboardScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.background },
-  container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 20 },
-  header: {
-    flexDirection: 'row', alignItems: 'center', paddingTop: 60, paddingBottom: 20, gap: 14,
-  },
-  logo: { width: 56, height: 56, borderRadius: 28 },
-  settingsBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: colors.border,
-  },
-  greeting: { color: colors.gold, fontSize: 22, fontWeight: '700', letterSpacing: 0.5 },
-  date: { color: colors.textSecondary, fontSize: 13, marginTop: 2, textTransform: 'capitalize' },
-  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  statCard: {
-    flex: 1, backgroundColor: colors.surface, borderRadius: 16, padding: 18,
-    alignItems: 'center', borderWidth: 1, borderColor: colors.border,
-  },
-  statCardGold: { backgroundColor: colors.gold, borderColor: colors.gold },
-  statValue: { color: colors.white, fontSize: 28, fontWeight: '800', marginTop: 6 },
-  statLabel: { color: colors.textSecondary, fontSize: 12, marginTop: 2, fontWeight: '500' },
-  novoBtn: { marginBottom: 24 },
-  section: { marginBottom: 24 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 6 },
-  hint: { color: colors.textMuted, fontSize: 11, fontStyle: 'italic', marginBottom: 10 },
-  verTudo: { color: colors.gold, fontSize: 14, fontWeight: '600', marginBottom: 14 },
-  emptyState: {
-    alignItems: 'center', paddingVertical: 30, backgroundColor: colors.surface, borderRadius: 16,
-  },
-  emptyText: { color: colors.textMuted, marginTop: 10, fontSize: 14 },
-});
+function makeStyles(primary) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.background },
+    container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 20 },
+    header: {
+      flexDirection: 'row', alignItems: 'center', paddingTop: 60, paddingBottom: 20, gap: 14,
+    },
+    logoWrap: { width: 56, height: 56, borderRadius: 28, overflow: 'hidden' },
+    logo: { width: 56, height: 56 },
+    settingsBtn: {
+      width: 40, height: 40, borderRadius: 20,
+      backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
+      borderWidth: 1, borderColor: colors.border,
+    },
+    greeting: { color: primary, fontSize: 22, fontWeight: '700', letterSpacing: 0.5 },
+    date: { color: colors.textSecondary, fontSize: 13, marginTop: 2, textTransform: 'capitalize' },
+    statsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+    statCard: {
+      flex: 1, backgroundColor: colors.surface, borderRadius: 16, padding: 18,
+      alignItems: 'center', borderWidth: 1, borderColor: colors.border,
+    },
+    statCardPrimary: { backgroundColor: primary, borderColor: primary },
+    statValue: { color: colors.white, fontSize: 28, fontWeight: '800', marginTop: 6 },
+    statLabel: { color: colors.textSecondary, fontSize: 12, marginTop: 2, fontWeight: '500' },
+    novoBtn: { marginBottom: 24 },
+    section: { marginBottom: 24 },
+    sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    sectionTitle: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 6 },
+    hint: { color: colors.textMuted, fontSize: 11, fontStyle: 'italic', marginBottom: 10 },
+    verTudo: { color: primary, fontSize: 14, fontWeight: '600', marginBottom: 14 },
+    emptyState: {
+      alignItems: 'center', paddingVertical: 30, backgroundColor: colors.surface, borderRadius: 16,
+    },
+    emptyText: { color: colors.textMuted, marginTop: 10, fontSize: 14 },
+  });
+}

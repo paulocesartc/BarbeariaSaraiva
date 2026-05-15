@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { getBlockedDays, blockDay, unblockDay } from '../database/appointmentsDb';
 import { showToast } from '../hooks/useToast';
 
@@ -32,6 +33,8 @@ function formatMonth(dateStr) {
 
 export default function DiasBloqueadosScreen({ navigation }) {
   const insets = useSafeAreaInsets();
+  const { primaryColor } = useTheme();
+  const styles = useMemo(() => makeStyles(primaryColor), [primaryColor]);
   const [blockedSet, setBlockedSet] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(null);
@@ -75,7 +78,6 @@ export default function DiasBloqueadosScreen({ navigation }) {
     }
   }
 
-  // Group days by month
   const groups = [];
   let currentMonth = null;
   let currentGroup = null;
@@ -104,7 +106,7 @@ export default function DiasBloqueadosScreen({ navigation }) {
       </Text>
 
       {loading ? (
-        <ActivityIndicator color={colors.gold} style={{ marginTop: 40 }} />
+        <ActivityIndicator color={primaryColor} style={{ marginTop: 40 }} />
       ) : (
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 + insets.bottom }}
@@ -128,14 +130,14 @@ export default function DiasBloqueadosScreen({ navigation }) {
                       <MaterialCommunityIcons
                         name={blocked ? 'calendar-remove' : 'calendar-check'}
                         size={20}
-                        color={blocked ? colors.danger : colors.gold}
+                        color={blocked ? colors.danger : primaryColor}
                       />
                       <Text style={[styles.dayText, blocked && styles.dayTextBlocked]}>
                         {formatDay(date)}
                       </Text>
                     </View>
                     {isToggling ? (
-                      <ActivityIndicator size="small" color={colors.gold} />
+                      <ActivityIndicator size="small" color={primaryColor} />
                     ) : (
                       <View style={[styles.toggle, blocked && styles.toggleOn]}>
                         <View style={[styles.toggleThumb, blocked && styles.toggleThumbOn]} />
@@ -152,38 +154,40 @@ export default function DiasBloqueadosScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  navBar: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 8,
-  },
-  navBtn: { padding: 4 },
-  title: { color: colors.white, fontSize: 20, fontWeight: '700' },
-  hint: {
-    color: colors.textSecondary, fontSize: 13, paddingHorizontal: 20,
-    marginBottom: 16, lineHeight: 18,
-  },
-  monthLabel: {
-    color: colors.gold, fontSize: 13, fontWeight: '700', textTransform: 'capitalize',
-    letterSpacing: 0.5, marginTop: 20, marginBottom: 8,
-  },
-  dayRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8,
-    borderWidth: 1, borderColor: colors.border,
-  },
-  dayRowBlocked: { borderColor: `${colors.danger}55`, backgroundColor: `${colors.danger}10` },
-  dayLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  dayText: { color: colors.white, fontSize: 14, fontWeight: '500', textTransform: 'capitalize' },
-  dayTextBlocked: { color: colors.textMuted, textDecorationLine: 'line-through' },
-  toggle: {
-    width: 44, height: 24, borderRadius: 12, backgroundColor: colors.border,
-    justifyContent: 'center', paddingHorizontal: 2,
-  },
-  toggleOn: { backgroundColor: colors.danger },
-  toggleThumb: {
-    width: 20, height: 20, borderRadius: 10, backgroundColor: colors.textMuted,
-    alignSelf: 'flex-start',
-  },
-  toggleThumbOn: { backgroundColor: colors.white, alignSelf: 'flex-end' },
-});
+function makeStyles(primary) {
+  return StyleSheet.create({
+    navBar: {
+      flexDirection: 'row', alignItems: 'center',
+      justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 8,
+    },
+    navBtn: { padding: 4 },
+    title: { color: colors.white, fontSize: 20, fontWeight: '700' },
+    hint: {
+      color: colors.textSecondary, fontSize: 13, paddingHorizontal: 20,
+      marginBottom: 16, lineHeight: 18,
+    },
+    monthLabel: {
+      color: primary, fontSize: 13, fontWeight: '700', textTransform: 'capitalize',
+      letterSpacing: 0.5, marginTop: 20, marginBottom: 8,
+    },
+    dayRow: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8,
+      borderWidth: 1, borderColor: colors.border,
+    },
+    dayRowBlocked: { borderColor: `${colors.danger}55`, backgroundColor: `${colors.danger}10` },
+    dayLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+    dayText: { color: colors.white, fontSize: 14, fontWeight: '500', textTransform: 'capitalize' },
+    dayTextBlocked: { color: colors.textMuted, textDecorationLine: 'line-through' },
+    toggle: {
+      width: 44, height: 24, borderRadius: 12, backgroundColor: colors.border,
+      justifyContent: 'center', paddingHorizontal: 2,
+    },
+    toggleOn: { backgroundColor: colors.danger },
+    toggleThumb: {
+      width: 20, height: 20, borderRadius: 10, backgroundColor: colors.textMuted,
+      alignSelf: 'flex-start',
+    },
+    toggleThumbOn: { backgroundColor: colors.white, alignSelf: 'flex-end' },
+  });
+}

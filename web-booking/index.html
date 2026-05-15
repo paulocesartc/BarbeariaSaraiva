@@ -199,7 +199,7 @@
 <body>
 <div class="container">
   <div class="header">
-    <div class="header-logo"><img src="logo.png" alt="Barbearia Saraiva" /></div>
+    <div class="header-logo"><img id="headerLogo" src="logo.png" alt="Barbearia Saraiva" /></div>
     <h1>Barbearia Saraiva</h1>
     <p>Agende seu horário em segundos</p>
   </div>
@@ -307,6 +307,7 @@
   let foundClient = null;
   let blockedDaysSet = new Set();
   let lunchTime = '13:00';
+  let disabledSlotsSet = new Set();
 
   // ─── Steps ───────────────────────────────────────────────
   function goToStep(n) {
@@ -442,6 +443,7 @@
 
     grid.innerHTML = '';
     for (let t = START; t + dur <= END; t += STEP) {
+      if (disabledSlotsSet.has(fromMin(t))) continue;
       const isLunch = t === LUNCH;
       const isPast = nowMin >= 0 && t <= nowMin;
       let conflict = false;
@@ -656,12 +658,26 @@
     try {
       const [blockedRes, settingsRes] = await Promise.all([
         api('blocked_days?select=date'),
-        api('settings?key=eq.lunch_time&select=value&limit=1'),
+        api('settings?select=key,value'),
       ]);
       const blockedData = await blockedRes.json();
       const settingsData = await settingsRes.json();
       if (Array.isArray(blockedData)) blockedDaysSet = new Set(blockedData.map(r => r.date));
-      if (Array.isArray(settingsData) && settingsData[0]?.value) lunchTime = settingsData[0].value;
+      if (Array.isArray(settingsData)) {
+        const byKey = Object.fromEntries(settingsData.map(r => [r.key, r.value]));
+        if (byKey.lunch_time) lunchTime = byKey.lunch_time;
+        if (byKey.disabled_slots) {
+          try { disabledSlotsSet = new Set(JSON.parse(byKey.disabled_slots)); } catch {}
+        }
+        if (byKey.primary_color) {
+          document.documentElement.style.setProperty('--gold', byKey.primary_color);
+          document.documentElement.style.setProperty('--gold-light', byKey.primary_color);
+        }
+        if (byKey.logo_url) {
+          const img = document.getElementById('headerLogo');
+          if (img) img.src = byKey.logo_url;
+        }
+      }
     } catch (e) {
       console.warn('init parcial:', e);
     }

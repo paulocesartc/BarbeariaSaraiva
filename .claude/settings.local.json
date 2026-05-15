@@ -4,7 +4,14 @@
       "Bash(npx expo prebuild:*)",
       "Bash(./gradlew assembleRelease:*)",
       "Bash(./gradlew:*)",
-      "Bash(dir C:\\\\Users\\\\paulo\\\\Documents\\\\BarbeariaSaraiva\\\\web-booking *)"
+      "Bash(dir C:\\\\Users\\\\paulo\\\\Documents\\\\BarbeariaSaraiva\\\\web-booking *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\paulo\\\\Documents\\\\BarbeariaSaraiva\" | Where-Object { $_.Name -ne \"node_modules\" } | Select-Object Name, PSIsContainer)",
+      "PowerShell(dir \"C:\\\\Users\\\\paulo\\\\Documents\\\\BarbeariaSaraiva\\\\src\" -Recurse | Where-Object { -not $_.PSIsContainer } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\paulo\\\\Documents\\\\BarbeariaSaraiva\\\\src\" -Recurse -File | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\paulo\\\\Documents\\\\BarbeariaSaraiva\\\\web-booking\" -Recurse -File | ForEach-Object { $_.FullName })",
+      "Bash(npx expo *)",
+      "Bash(node -e \"const fs=require\\('fs'\\); const c=fs.readFileSync\\('src/database/settingsDb.js','utf8'\\); console.log\\(JSON.stringify\\(c.slice\\(-100\\)\\)\\)\")",
+      "Bash(node -e ' *)"
     ],
     "deny": [],
     "ask": []

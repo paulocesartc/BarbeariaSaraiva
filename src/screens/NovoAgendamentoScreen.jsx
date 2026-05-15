@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, TextInput,
   KeyboardAvoidingView, Platform,
@@ -7,6 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { getAllClients } from '../database/clientsDb';
 import { getAllServices } from '../database/servicesDb';
 import { createAppointment, getAvailableSlots, hasConflict, getBlockedDays } from '../database/appointmentsDb';
@@ -32,6 +33,9 @@ function isValidTime(t) {
 export default function NovoAgendamentoScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const bottomPad = 70 + insets.bottom + 32;
+  const { primaryColor } = useTheme();
+  const styles = useMemo(() => makeStyles(primaryColor), [primaryColor]);
+
   const [clientes, setClientes] = useState([]);
   const [servicos, setServicos] = useState([]);
   const [step, setStep] = useState(0);
@@ -239,7 +243,7 @@ export default function NovoAgendamentoScreen({ navigation }) {
                 activeOpacity={0.7}
               >
                 <View style={styles.iconBox}>
-                  <MaterialCommunityIcons name={item.icon} size={24} color={colors.gold} />
+                  <MaterialCommunityIcons name={item.icon} size={24} color={primaryColor} />
                 </View>
                 <View style={styles.selectInfo}>
                   <Text style={styles.selectName}>{item.name}</Text>
@@ -280,11 +284,11 @@ export default function NovoAgendamentoScreen({ navigation }) {
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: bottomPad }}>
       <View style={styles.summaryCard}>
         <View style={styles.summaryRow}>
-          <MaterialCommunityIcons name="account" size={18} color={colors.gold} />
+          <MaterialCommunityIcons name="account" size={18} color={primaryColor} />
           <Text style={styles.summaryText}>{clienteSelecionado?.name}</Text>
         </View>
         <View style={styles.summaryRow}>
-          <MaterialCommunityIcons name="content-cut" size={18} color={colors.gold} />
+          <MaterialCommunityIcons name="content-cut" size={18} color={primaryColor} />
           <Text style={styles.summaryText}>{combinedName} — {totalDuration}min</Text>
         </View>
       </View>
@@ -326,66 +330,65 @@ export default function NovoAgendamentoScreen({ navigation }) {
         </View>
       ) : (
         <>
-      <Text style={styles.subtitle}>Valor</Text>
-      <View style={styles.priceRow}>
-        <Text style={styles.pricePrefix}>R$</Text>
-        <TextInput
-          style={styles.priceInput}
-          keyboardType="number-pad"
-          value={precoCustom}
-          onChangeText={(v) => setPrecoCustom(formatCurrencyInput(v))}
-        />
-      </View>
-
-      <Text style={styles.subtitle}>Horário</Text>
-      <View style={styles.slotsGrid}>
-        {slots.map((s) => (
-          <TimeSlot
-            key={s.time}
-            horario={s.time}
-            selecionado={horarioSelecionado === s.time}
-            ocupado={!s.available}
-            lunch={s.lunch}
-            onPress={() => { setHorarioSelecionado(s.time); setCustomTime(''); }}
-          />
-        ))}
-      </View>
-
-      <Text style={styles.customLabel}>Ou digite um horário específico</Text>
-      <View style={styles.customTimeRow}>
-        <TextInput
-          style={styles.customTimeInput}
-          placeholder="Ex: 15:15"
-          placeholderTextColor={colors.textMuted}
-          keyboardType="number-pad"
-          value={customTime}
-          onChangeText={(v) => setCustomTime(formatTimeInput(v))}
-          maxLength={5}
-        />
-        <TouchableOpacity style={styles.customTimeBtn} onPress={escolherCustomTime}>
-          <Text style={styles.customTimeBtnText}>Usar</Text>
-        </TouchableOpacity>
-      </View>
-
-      {horarioSelecionado && (
-        <View style={styles.confirmSection}>
-          <View style={styles.confirmCard}>
-            <Text style={styles.confirmTitle}>Resumo</Text>
-            <Text style={styles.confirmLine}>{clienteSelecionado?.name}</Text>
-            <Text style={styles.confirmLine}>{combinedName} ({totalDuration}min)</Text>
-            <Text style={styles.confirmLine}>
-              {formatDateLabel(selectedDate)} às {horarioSelecionado}
-            </Text>
-            <Text style={styles.confirmValor}>R$ {precoCustom}</Text>
+          <Text style={styles.subtitle}>Valor</Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.pricePrefix}>R$</Text>
+            <TextInput
+              style={styles.priceInput}
+              keyboardType="number-pad"
+              value={precoCustom}
+              onChangeText={(v) => setPrecoCustom(formatCurrencyInput(v))}
+            />
           </View>
 
-          <PremiumButton
-            title="Confirmar Agendamento"
-            onPress={handleConfirmar}
-            style={{ marginTop: 16 }}
-          />
-        </View>
-      )}
+          <Text style={styles.subtitle}>Horário</Text>
+          <View style={styles.slotsGrid}>
+            {slots.map((s) => (
+              <TimeSlot
+                key={s.time}
+                horario={s.time}
+                selecionado={horarioSelecionado === s.time}
+                ocupado={!s.available}
+                lunch={s.lunch}
+                onPress={() => { setHorarioSelecionado(s.time); setCustomTime(''); }}
+              />
+            ))}
+          </View>
+
+          <Text style={styles.customLabel}>Ou digite um horário específico</Text>
+          <View style={styles.customTimeRow}>
+            <TextInput
+              style={styles.customTimeInput}
+              placeholder="Ex: 15:15"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="number-pad"
+              value={customTime}
+              onChangeText={(v) => setCustomTime(formatTimeInput(v))}
+              maxLength={5}
+            />
+            <TouchableOpacity style={styles.customTimeBtn} onPress={escolherCustomTime}>
+              <Text style={styles.customTimeBtnText}>Usar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {horarioSelecionado && (
+            <View style={styles.confirmSection}>
+              <View style={styles.confirmCard}>
+                <Text style={styles.confirmTitle}>Resumo</Text>
+                <Text style={styles.confirmLine}>{clienteSelecionado?.name}</Text>
+                <Text style={styles.confirmLine}>{combinedName} ({totalDuration}min)</Text>
+                <Text style={styles.confirmLine}>
+                  {formatDateLabel(selectedDate)} às {horarioSelecionado}
+                </Text>
+                <Text style={styles.confirmValor}>R$ {precoCustom}</Text>
+              </View>
+              <PremiumButton
+                title="Confirmar Agendamento"
+                onPress={handleConfirmar}
+                style={{ marginTop: 16 }}
+              />
+            </View>
+          )}
         </>
       )}
     </ScrollView>
@@ -407,10 +410,7 @@ export default function NovoAgendamentoScreen({ navigation }) {
         {step === 0 && renderClientes()}
         {step === 1 && renderServicos()}
         {step === 2 && (
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             {renderHorarios()}
           </KeyboardAvoidingView>
         )}
@@ -419,123 +419,123 @@ export default function NovoAgendamentoScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingTop: 60, paddingBottom: 16,
-  },
-  title: { color: colors.white, fontSize: 20, fontWeight: '700' },
-  stepRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30, marginBottom: 20 },
-  stepItem: { flexDirection: 'row', alignItems: 'center' },
-  stepCircle: {
-    width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surface,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.border,
-  },
-  stepCircleActive: { borderColor: colors.gold },
-  stepCircleDone: { backgroundColor: colors.gold, borderColor: colors.gold },
-  stepNumber: { color: colors.textMuted, fontSize: 14, fontWeight: '700' },
-  stepNumberActive: { color: colors.gold },
-  stepLabel: { color: colors.textMuted, fontSize: 12, marginLeft: 6, fontWeight: '600' },
-  stepLabelActive: { color: colors.gold },
-  stepLine: { width: 30, height: 2, backgroundColor: colors.border, marginHorizontal: 8 },
-  stepLineActive: { backgroundColor: colors.gold },
-  content: { flex: 1, paddingHorizontal: 20 },
-  searchInput: {
-    backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
-    color: colors.white, fontSize: 15, marginBottom: 12, borderWidth: 1, borderColor: colors.border,
-  },
-  hintMulti: { color: colors.textMuted, fontSize: 12, fontStyle: 'italic', marginBottom: 10 },
-  selectCard: {
-    backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8,
-    flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: 'transparent',
-  },
-  selectCardActive: { borderColor: colors.gold },
-  selectAvatar: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: colors.gold,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  selectAvatarText: { color: colors.background, fontSize: 14, fontWeight: '700' },
-  iconBox: {
-    width: 44, height: 44, borderRadius: 12, backgroundColor: colors.background,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
-  },
-  selectInfo: { flex: 1, marginLeft: 12 },
-  selectName: { color: colors.white, fontSize: 15, fontWeight: '600' },
-  selectSub: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
-  selectPreco: { color: colors.gold, fontSize: 16, fontWeight: '700', marginRight: 10 },
-  checkBox: {
-    width: 22, height: 22, borderRadius: 6, borderWidth: 2,
-    borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
-  },
-  checkBoxActive: { backgroundColor: colors.gold, borderColor: colors.gold },
-  floatingBar: {
-    position: 'absolute', left: 0, right: 0, marginHorizontal: 0,
-    backgroundColor: colors.surface, borderRadius: 14, padding: 14,
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderWidth: 1, borderColor: colors.gold,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4,
-    shadowRadius: 8, elevation: 10,
-  },
-  floatingLabel: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
-  floatingTotal: { color: colors.gold, fontSize: 18, fontWeight: '800', marginTop: 2 },
-  floatingBtn: {
-    backgroundColor: colors.gold, paddingHorizontal: 16, paddingVertical: 12,
-    borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 6,
-  },
-  floatingBtnText: { color: colors.background, fontWeight: '700', fontSize: 14 },
-  subtitle: { color: colors.white, fontSize: 16, fontWeight: '600', marginBottom: 14 },
-  slotsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start' },
-  summaryCard: {
-    backgroundColor: colors.surface, borderRadius: 12, padding: 16, marginBottom: 20,
-    gap: 10, borderWidth: 1, borderColor: colors.border,
-  },
-  summaryRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  summaryText: { color: colors.white, fontSize: 14, fontWeight: '500', flex: 1 },
-  dateChip: {
-    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10,
-    backgroundColor: colors.surface, marginRight: 8, borderWidth: 1, borderColor: colors.border,
-    alignItems: 'center',
-  },
-  dateChipActive: { backgroundColor: colors.gold, borderColor: colors.gold },
-  dateChipBlocked: { borderColor: `${colors.danger}55`, backgroundColor: `${colors.danger}10`, opacity: 0.7 },
-  dateChipText: { color: colors.white, fontSize: 13, fontWeight: '600' },
-  dateChipTextActive: { color: colors.background },
-  dateChipTextBlocked: { color: colors.textMuted, textDecorationLine: 'line-through' },
-  blockedBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: `${colors.danger}15`, borderRadius: 12, padding: 16,
-    borderLeftWidth: 3, borderLeftColor: colors.danger, marginBottom: 16,
-  },
-  blockedBannerText: { color: colors.textSecondary, fontSize: 14, flex: 1, lineHeight: 20 },
-  priceRow: {
-    flexDirection: 'row', alignItems: 'center', marginBottom: 20,
-    backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border,
-  },
-  pricePrefix: { color: colors.gold, fontSize: 16, fontWeight: '700', paddingLeft: 14 },
-  priceInput: { flex: 1, color: colors.white, fontSize: 16, paddingHorizontal: 10, paddingVertical: 12 },
-  customLabel: { color: colors.textSecondary, fontSize: 12, fontWeight: '600', marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
-  customTimeRow: {
-    flexDirection: 'row', gap: 8, marginBottom: 8,
-  },
-  customTimeInput: {
-    flex: 1, backgroundColor: colors.surface, borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 12, color: colors.white, fontSize: 15,
-    borderWidth: 1, borderColor: colors.border,
-  },
-  customTimeBtn: {
-    backgroundColor: colors.gold, paddingHorizontal: 20, justifyContent: 'center',
-    borderRadius: 10,
-  },
-  customTimeBtnText: { color: colors.background, fontWeight: '700', fontSize: 14 },
-  confirmSection: { marginTop: 24 },
-  confirmCard: {
-    backgroundColor: colors.surface, borderRadius: 14, padding: 18,
-    borderWidth: 1, borderColor: colors.gold,
-  },
-  confirmTitle: { color: colors.gold, fontSize: 18, fontWeight: '700', marginBottom: 10 },
-  confirmLine: { color: colors.white, fontSize: 14, marginBottom: 4 },
-  confirmValor: { color: colors.gold, fontSize: 22, fontWeight: '800', marginTop: 10 },
-  emptyState: { alignItems: 'center', paddingVertical: 40, backgroundColor: colors.surface, borderRadius: 16 },
-  emptyText: { color: colors.textMuted, fontSize: 14 },
-});
+function makeStyles(primary) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    header: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      paddingHorizontal: 20, paddingTop: 60, paddingBottom: 16,
+    },
+    title: { color: colors.white, fontSize: 20, fontWeight: '700' },
+    stepRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30, marginBottom: 20 },
+    stepItem: { flexDirection: 'row', alignItems: 'center' },
+    stepCircle: {
+      width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surface,
+      alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.border,
+    },
+    stepCircleActive: { borderColor: primary },
+    stepCircleDone: { backgroundColor: primary, borderColor: primary },
+    stepNumber: { color: colors.textMuted, fontSize: 14, fontWeight: '700' },
+    stepNumberActive: { color: primary },
+    stepLabel: { color: colors.textMuted, fontSize: 12, marginLeft: 6, fontWeight: '600' },
+    stepLabelActive: { color: primary },
+    stepLine: { width: 30, height: 2, backgroundColor: colors.border, marginHorizontal: 8 },
+    stepLineActive: { backgroundColor: primary },
+    content: { flex: 1, paddingHorizontal: 20 },
+    searchInput: {
+      backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
+      color: colors.white, fontSize: 15, marginBottom: 12, borderWidth: 1, borderColor: colors.border,
+    },
+    hintMulti: { color: colors.textMuted, fontSize: 12, fontStyle: 'italic', marginBottom: 10 },
+    selectCard: {
+      backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8,
+      flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: 'transparent',
+    },
+    selectCardActive: { borderColor: primary },
+    selectAvatar: {
+      width: 44, height: 44, borderRadius: 22, backgroundColor: primary,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    selectAvatarText: { color: colors.background, fontSize: 14, fontWeight: '700' },
+    iconBox: {
+      width: 44, height: 44, borderRadius: 12, backgroundColor: colors.background,
+      alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
+    },
+    selectInfo: { flex: 1, marginLeft: 12 },
+    selectName: { color: colors.white, fontSize: 15, fontWeight: '600' },
+    selectSub: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+    selectPreco: { color: primary, fontSize: 16, fontWeight: '700', marginRight: 10 },
+    checkBox: {
+      width: 22, height: 22, borderRadius: 6, borderWidth: 2,
+      borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    },
+    checkBoxActive: { backgroundColor: primary, borderColor: primary },
+    floatingBar: {
+      position: 'absolute', left: 0, right: 0, marginHorizontal: 0,
+      backgroundColor: colors.surface, borderRadius: 14, padding: 14,
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      borderWidth: 1, borderColor: primary,
+      shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4,
+      shadowRadius: 8, elevation: 10,
+    },
+    floatingLabel: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
+    floatingTotal: { color: primary, fontSize: 18, fontWeight: '800', marginTop: 2 },
+    floatingBtn: {
+      backgroundColor: primary, paddingHorizontal: 16, paddingVertical: 12,
+      borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 6,
+    },
+    floatingBtnText: { color: colors.background, fontWeight: '700', fontSize: 14 },
+    subtitle: { color: colors.white, fontSize: 16, fontWeight: '600', marginBottom: 14 },
+    slotsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start' },
+    summaryCard: {
+      backgroundColor: colors.surface, borderRadius: 12, padding: 16, marginBottom: 20,
+      gap: 10, borderWidth: 1, borderColor: colors.border,
+    },
+    summaryRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    summaryText: { color: colors.white, fontSize: 14, fontWeight: '500', flex: 1 },
+    dateChip: {
+      paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10,
+      backgroundColor: colors.surface, marginRight: 8, borderWidth: 1, borderColor: colors.border,
+      alignItems: 'center',
+    },
+    dateChipActive: { backgroundColor: primary, borderColor: primary },
+    dateChipBlocked: { borderColor: `${colors.danger}55`, backgroundColor: `${colors.danger}10`, opacity: 0.7 },
+    dateChipText: { color: colors.white, fontSize: 13, fontWeight: '600' },
+    dateChipTextActive: { color: colors.background },
+    dateChipTextBlocked: { color: colors.textMuted, textDecorationLine: 'line-through' },
+    blockedBanner: {
+      flexDirection: 'row', alignItems: 'center', gap: 10,
+      backgroundColor: `${colors.danger}15`, borderRadius: 12, padding: 16,
+      borderLeftWidth: 3, borderLeftColor: colors.danger, marginBottom: 16,
+    },
+    blockedBannerText: { color: colors.textSecondary, fontSize: 14, flex: 1, lineHeight: 20 },
+    priceRow: {
+      flexDirection: 'row', alignItems: 'center', marginBottom: 20,
+      backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border,
+    },
+    pricePrefix: { color: primary, fontSize: 16, fontWeight: '700', paddingLeft: 14 },
+    priceInput: { flex: 1, color: colors.white, fontSize: 16, paddingHorizontal: 10, paddingVertical: 12 },
+    customLabel: { color: colors.textSecondary, fontSize: 12, fontWeight: '600', marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+    customTimeRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+    customTimeInput: {
+      flex: 1, backgroundColor: colors.surface, borderRadius: 10,
+      paddingHorizontal: 14, paddingVertical: 12, color: colors.white, fontSize: 15,
+      borderWidth: 1, borderColor: colors.border,
+    },
+    customTimeBtn: {
+      backgroundColor: primary, paddingHorizontal: 20, justifyContent: 'center',
+      borderRadius: 10,
+    },
+    customTimeBtnText: { color: colors.background, fontWeight: '700', fontSize: 14 },
+    confirmSection: { marginTop: 24 },
+    confirmCard: {
+      backgroundColor: colors.surface, borderRadius: 14, padding: 18,
+      borderWidth: 1, borderColor: primary,
+    },
+    confirmTitle: { color: primary, fontSize: 18, fontWeight: '700', marginBottom: 10 },
+    confirmLine: { color: colors.white, fontSize: 14, marginBottom: 4 },
+    confirmValor: { color: primary, fontSize: 22, fontWeight: '800', marginTop: 10 },
+    emptyState: { alignItems: 'center', paddingVertical: 40, backgroundColor: colors.surface, borderRadius: 16 },
+    emptyText: { color: colors.textMuted, fontSize: 14 },
+  });
+}

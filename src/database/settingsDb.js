@@ -25,3 +25,26 @@ export async function getLunchTime() {
 export async function setLunchTime(time) {
   await setSetting('lunch_time', time);
 }
+
+export async function getPrimaryColor() {
+  return getSetting('primary_color');
+}
+
+export async function setPrimaryColor(color) {
+  await setSetting('primary_color', color);
+}
+
+export async function getLogoUrl() {
+  return getSetting('logo_url');
+}
+export async function setLogoUrl(url) {
+  await setSetting('logo_url', url);
+}
+
+export async function getDisabledSlots() {
+  const v = await getSetting('disabled_slots');
+  try { return v ? JSON.parse(v) : []; } catch { return []; }
+}
+export async function setDisabledSlots(slots) {
+  await setSetting('disabled_slots', JSON.stringify(slots));
+}
