@@ -132,7 +132,10 @@ Deno.serve(async (req) => {
           .select('id')
           .single();
 
-        if (clientErr || !newClient) return Response.json({ error: 'Erro ao cadastrar cliente' }, { status: 500, headers: corsHeaders });
+        if (clientErr || !newClient) {
+          console.error('Erro ao cadastrar cliente:', JSON.stringify(clientErr));
+          return Response.json({ error: 'Erro ao cadastrar cliente' }, { status: 500, headers: corsHeaders });
+        }
         clientId = newClient.id;
       }
 
