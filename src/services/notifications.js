@@ -129,13 +129,13 @@ async function setupAndroidChannel() {
 /** Obtém o Expo Push Token e salva no Supabase para uso pelo site de agendamento */
 async function savePushToken() {
   try {
-    const { projectId } = Constants.expoConfig?.extra?.eas ?? {};
+    const projectId =
+      Constants.easConfig?.projectId ??
+      Constants.expoConfig?.extra?.eas?.projectId;
+    if (!projectId) throw new Error('projectId não encontrado no app.json');
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
     if (token) {
       await setSetting('expo_push_token', token);
-      console.log('[notifications] Push token salvo:', token);
-    } else {
-      console.warn('[notifications] Token vazio retornado');
     }
   } catch (e) {
     console.error('[notifications] Erro ao obter push token:', e.message);
@@ -145,16 +145,11 @@ async function savePushToken() {
 /** Configura todas as notificações recorrentes */
 export async function setupNotifications() {
   const granted = await requestNotificationPermission();
-  if (!granted) {
-    console.log('[notifications] Permissão negada');
-    return false;
-  }
+  if (!granted) return false;
 
   await setupAndroidChannel();
   await savePushToken();
   await scheduleMorningNotification();
   await scheduleEveningNotification();
-
-  console.log('[notifications] Setup completo');
   return true;
 }
