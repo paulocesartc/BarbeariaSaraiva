@@ -144,6 +144,7 @@ Deno.serve(async (req) => {
       const { error: apptErr } = await supabase
         .from('appointments')
         .insert({
+          id: crypto.randomUUID(),
           tenant_id: tid,
           client_id: clientId,
           client_name,
@@ -156,7 +157,10 @@ Deno.serve(async (req) => {
           status: 'agendado',
         });
 
-      if (apptErr) return Response.json({ error: 'Erro ao criar agendamento' }, { status: 500, headers: corsHeaders });
+      if (apptErr) {
+        console.error('Erro ao criar agendamento:', JSON.stringify(apptErr));
+        return Response.json({ error: 'Erro ao criar agendamento' }, { status: 500, headers: corsHeaders });
+      }
 
       // Dispara push notification pro barbeiro correto
       const notifyUrl = `${SUPABASE_URL}/functions/v1/notify-booking`;
