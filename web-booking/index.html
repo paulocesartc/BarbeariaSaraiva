@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Barbearia Saraiva — Agendamento</title>
+  <title>Agendamento</title>
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,160 +22,71 @@
       --danger: #E74C3C;
     }
 
-    body {
-      background: var(--bg);
-      color: var(--white);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      min-height: 100vh;
-    }
+    body { background: var(--bg); color: var(--white); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+    .container { max-width: 480px; margin: 0 auto; padding: 24px 20px 60px; }
 
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 24px 20px 60px;
-    }
-
-    /* Header */
     .header { text-align: center; padding: 32px 0 28px; }
-    .header-logo {
-      width: 80px; height: 80px; border-radius: 20px;
-      overflow: hidden; display: inline-block;
-      margin-bottom: 14px;
-    }
+    .header-logo { width: 80px; height: 80px; border-radius: 20px; overflow: hidden; display: inline-block; margin-bottom: 14px; }
     .header-logo img { width: 100%; height: 100%; object-fit: cover; }
     .header h1 { font-size: 22px; font-weight: 700; color: var(--white); }
     .header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
 
-    /* Steps */
-    .steps {
-      display: flex; align-items: center; justify-content: center;
-      gap: 0; margin-bottom: 28px;
-    }
+    .steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 28px; }
     .step-item { display: flex; align-items: center; }
-    .step-circle {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--surface); border: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: var(--text-muted);
-      transition: all 0.2s;
-    }
+    .step-circle { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--text-muted); transition: all 0.2s; }
     .step-circle.active { border-color: var(--gold); color: var(--gold); }
     .step-circle.done { background: var(--gold); border-color: var(--gold); color: var(--bg); }
-    .step-label {
-      font-size: 11px; font-weight: 600; color: var(--text-muted);
-      margin-left: 6px; transition: color 0.2s;
-    }
+    .step-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-left: 6px; transition: color 0.2s; }
     .step-label.active { color: var(--gold); }
-    .step-line {
-      width: 28px; height: 2px; background: var(--border);
-      margin: 0 8px; transition: background 0.2s;
-    }
+    .step-line { width: 28px; height: 2px; background: var(--border); margin: 0 8px; transition: background 0.2s; }
     .step-line.done { background: var(--gold); }
 
-    /* Cards */
-    .card {
-      background: var(--surface); border-radius: 14px;
-      padding: 16px; margin-bottom: 10px;
-      border: 1.5px solid transparent; cursor: pointer;
-      display: flex; align-items: center; gap: 12px;
-      transition: border-color 0.15s;
-    }
+    .card { background: var(--surface); border-radius: 14px; padding: 16px; margin-bottom: 10px; border: 1.5px solid transparent; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: border-color 0.15s; }
     .card:hover { border-color: var(--border); }
     .card.selected { border-color: var(--gold); }
-    .card-icon {
-      width: 44px; height: 44px; border-radius: 12px;
-      background: var(--bg); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; flex-shrink: 0; color: var(--gold);
-    }
+    .card-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; color: var(--gold); }
     .card-info { flex: 1; margin-left: 4px; }
     .card-name { font-size: 15px; font-weight: 600; color: var(--white); }
     .card-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
     .card-price { font-size: 15px; font-weight: 700; color: var(--gold); white-space: nowrap; flex-shrink: 0; }
 
-    /* Input */
     .input-group { margin-bottom: 16px; }
     .input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    input, select {
-      width: 100%; background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 13px 14px;
-      color: var(--white); font-size: 15px; outline: none;
-      transition: border-color 0.15s;
-    }
+    input, select { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 13px 14px; color: var(--white); font-size: 15px; outline: none; transition: border-color 0.15s; }
     input:focus, select:focus { border-color: var(--gold); }
     input::placeholder { color: var(--text-muted); }
     select option { background: var(--surface); color: var(--white); }
 
-    /* Date chips */
     .date-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 20px; }
     .date-scroll::-webkit-scrollbar { display: none; }
-    .date-chip {
-      padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border);
-      background: var(--surface); cursor: pointer; white-space: nowrap;
-      font-size: 13px; font-weight: 600; color: var(--white);
-      transition: all 0.15s; flex-shrink: 0;
-    }
+    .date-chip { padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--white); transition: all 0.15s; flex-shrink: 0; }
     .date-chip:hover:not(.blocked) { border-color: var(--gold); }
     .date-chip.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
     .date-chip.blocked { border-color: rgba(231,76,60,0.35); background: rgba(231,76,60,0.08); color: var(--text-muted); cursor: not-allowed; text-decoration: line-through; opacity: 0.7; }
 
-    /* Slots grid */
     .slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
     @media (max-width: 360px) { .slots-grid { grid-template-columns: repeat(3, 1fr); } }
-    .slot {
-      padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--border);
-      background: var(--surface); cursor: pointer;
-      font-size: 14px; font-weight: 600; color: var(--white);
-      transition: all 0.15s; text-align: center;
-    }
+    .slot { padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 600; color: var(--white); transition: all 0.15s; text-align: center; }
     .slot:hover:not(.occupied) { border-color: var(--gold); }
     .slot.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
     .slot.occupied { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
     .slot.lunch { background: rgba(52,152,219,0.08); border-color: rgba(52,152,219,0.3); opacity: 0.55; cursor: not-allowed; font-size: 12px; }
 
-    /* Summary card */
-    .summary-card {
-      background: var(--surface); border-radius: 14px; padding: 18px;
-      border: 1px solid var(--gold); margin-bottom: 20px;
-    }
+    .summary-card { background: var(--surface); border-radius: 14px; padding: 18px; border: 1px solid var(--gold); margin-bottom: 20px; }
     .summary-title { color: var(--gold); font-size: 16px; font-weight: 700; margin-bottom: 12px; }
     .summary-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
     .summary-row span { font-size: 14px; color: var(--white); }
     .summary-valor { color: var(--gold); font-size: 22px; font-weight: 800; margin-top: 10px; }
 
-    /* Button */
-    .btn {
-      width: 100%; padding: 16px; border-radius: 12px;
-      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-      color: var(--bg); font-size: 16px; font-weight: 700;
-      border: none; cursor: pointer; transition: opacity 0.15s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
+    .btn { width: 100%; padding: 16px; border-radius: 12px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--bg); font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: opacity 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn:hover { opacity: 0.9; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-whatsapp { background: #25D366; color: #fff; margin-top: 12px; }
+    .btn-back { background: var(--surface); color: var(--white); border: 1px solid var(--border); margin-bottom: 12px; }
 
-    .btn-whatsapp {
-      background: #25D366; color: #fff; margin-top: 12px;
-    }
-    .btn-whatsapp:hover { opacity: 0.9; }
-
-    .btn-back {
-      background: var(--surface); color: var(--white);
-      border: 1px solid var(--border); margin-bottom: 12px;
-    }
-
-    /* Section title */
     .section-title { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 12px; }
 
-    /* Toast */
-    .toast {
-      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px 20px; min-width: 260px; max-width: calc(100vw - 40px);
-      display: flex; align-items: center; gap: 10px; z-index: 999;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      animation: slideDown 0.3s ease; display: none;
-    }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; min-width: 260px; max-width: calc(100vw - 40px); display: flex; align-items: center; gap: 10px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: slideDown 0.3s ease; display: none; }
     .toast.show { display: flex; }
     .toast.success { border-color: var(--success); }
     .toast.error { border-color: var(--danger); }
@@ -183,7 +94,6 @@
     .toast-text { font-size: 14px; font-weight: 600; color: var(--white); }
     @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
-    /* Success screen */
     .success-screen { text-align: center; padding: 40px 0; }
     .success-icon { font-size: 64px; margin-bottom: 20px; }
     .success-title { font-size: 24px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
@@ -191,124 +101,127 @@
 
     .loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: 15px; }
     .divider { height: 1px; background: var(--border); margin: 20px 0; }
-
     .phone-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
     .client-found { background: var(--surface); border: 1px solid var(--success); border-radius: 10px; padding: 12px 14px; margin-top: 8px; display: none; }
-    .client-found.show { display: flex; align-items: center; gap: 10; }
+    .client-found.show { display: flex; align-items: center; gap: 10px; }
     .client-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--bg); font-size: 13px; flex-shrink: 0; }
-
     .hidden { display: none !important; }
+
+    .not-found { text-align: center; padding: 60px 20px; }
+    .not-found h2 { color: var(--danger); font-size: 20px; margin-bottom: 8px; }
+    .not-found p { color: var(--text-secondary); font-size: 14px; }
   </style>
 </head>
 <body>
 <div class="container">
-  <div class="header">
-    <div class="header-logo"><img id="headerLogo" src="logo.png" alt="Barbearia Saraiva" /></div>
-    <h1>Barbearia Saraiva</h1>
-    <p>Agende seu horário em segundos</p>
+  <div id="app-loading" class="loading" style="padding-top:80px">Carregando...</div>
+  <div id="app-not-found" class="not-found hidden">
+    <h2>Barbearia não encontrada</h2>
+    <p>Verifique o link e tente novamente.</p>
   </div>
 
-  <!-- Steps indicator -->
-  <div class="steps" id="steps">
-    <div class="step-item">
-      <div class="step-circle active" id="circle-0">1</div>
-      <span class="step-label active" id="label-0">Serviço</span>
+  <div id="app" class="hidden">
+    <div class="header">
+      <div class="header-logo"><img id="headerLogo" src="" alt="" /></div>
+      <h1 id="headerName"></h1>
+      <p>Agende seu horário em segundos</p>
     </div>
-    <div class="step-line" id="line-0"></div>
-    <div class="step-item">
-      <div class="step-circle" id="circle-1">2</div>
-      <span class="step-label" id="label-1">Horário</span>
-    </div>
-    <div class="step-line" id="line-1"></div>
-    <div class="step-item">
-      <div class="step-circle" id="circle-2">3</div>
-      <span class="step-label" id="label-2">Seus dados</span>
-    </div>
-  </div>
 
-  <!-- Step 0: Serviço -->
-  <div id="step-0">
-    <p class="section-title">Escolha o serviço</p>
-    <div id="services-list"><div class="loading">Carregando serviços...</div></div>
-  </div>
-
-  <!-- Step 1: Horário -->
-  <div id="step-1" class="hidden">
-    <div class="summary-card" id="summary-service" style="margin-bottom:20px"></div>
-
-    <p class="section-title">Escolha a data</p>
-    <div class="date-scroll" id="date-chips"></div>
-
-    <p class="section-title">Horários disponíveis</p>
-    <div class="slots-grid" id="slots-grid"><div class="loading">Carregando...</div></div>
-
-    <button class="btn btn-back" onclick="goToStep(0)">← Voltar</button>
-    <button class="btn" id="btn-next-horario" disabled onclick="goToStep(2)">Continuar →</button>
-  </div>
-
-  <!-- Step 2: Dados do cliente -->
-  <div id="step-2" class="hidden">
-    <div class="summary-card" id="summary-final"></div>
-
-    <div class="input-group">
-      <label>Seu telefone (WhatsApp)</label>
-      <input type="tel" id="input-phone" placeholder="(11) 99999-9999" maxlength="15" />
-      <div class="client-found" id="client-found-box">
-        <div class="client-avatar" id="client-avatar"></div>
-        <div>
-          <div style="font-size:14px;font-weight:600;color:#fff" id="client-found-name"></div>
-          <div style="font-size:12px;color:var(--success)">Cadastro encontrado ✓</div>
-        </div>
+    <div class="steps" id="steps">
+      <div class="step-item">
+        <div class="step-circle active" id="circle-0">1</div>
+        <span class="step-label active" id="label-0">Serviço</span>
+      </div>
+      <div class="step-line" id="line-0"></div>
+      <div class="step-item">
+        <div class="step-circle" id="circle-1">2</div>
+        <span class="step-label" id="label-1">Horário</span>
+      </div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-item">
+        <div class="step-circle" id="circle-2">3</div>
+        <span class="step-label" id="label-2">Seus dados</span>
       </div>
     </div>
 
-    <div class="input-group">
-      <label>Seu nome completo</label>
-      <input type="text" id="input-name" placeholder="João da Silva" />
+    <div id="step-0">
+      <p class="section-title">Escolha o serviço</p>
+      <div id="services-list"><div class="loading">Carregando serviços...</div></div>
     </div>
 
-    <button class="btn btn-back" onclick="goToStep(1)">← Voltar</button>
-    <button class="btn" id="btn-confirmar" onclick="confirmarAgendamento()">Confirmar Agendamento ✓</button>
-  </div>
+    <div id="step-1" class="hidden">
+      <div class="summary-card" id="summary-service" style="margin-bottom:20px"></div>
+      <p class="section-title">Escolha a data</p>
+      <div class="date-scroll" id="date-chips"></div>
+      <p class="section-title">Horários disponíveis</p>
+      <div class="slots-grid" id="slots-grid"><div class="loading">Carregando...</div></div>
+      <button class="btn btn-back" onclick="goToStep(0)">← Voltar</button>
+      <button class="btn" id="btn-next-horario" disabled onclick="goToStep(2)">Continuar →</button>
+    </div>
 
-  <!-- Sucesso -->
-  <div id="step-success" class="hidden">
-    <div class="success-screen">
-      <div class="success-icon">🎉</div>
-      <div class="success-title">Agendamento confirmado!</div>
-      <div class="success-sub" id="success-details"></div>
-      <br><br>
-      <a id="btn-whatsapp" class="btn btn-whatsapp" href="#" target="_blank" rel="noopener">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-        Confirmar pelo WhatsApp
-      </a>
-      <button class="btn" style="margin-top:12px;background:var(--surface);color:var(--white);" onclick="resetAll()">Fazer novo agendamento</button>
+    <div id="step-2" class="hidden">
+      <div class="summary-card" id="summary-final"></div>
+      <div class="input-group">
+        <label>Seu telefone (WhatsApp)</label>
+        <input type="tel" id="input-phone" placeholder="(11) 99999-9999" maxlength="15" />
+        <div class="client-found" id="client-found-box">
+          <div class="client-avatar" id="client-avatar"></div>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:#fff" id="client-found-name"></div>
+            <div style="font-size:12px;color:var(--success)">Cadastro encontrado ✓</div>
+          </div>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Seu nome completo</label>
+        <input type="text" id="input-name" placeholder="João da Silva" />
+      </div>
+      <button class="btn btn-back" onclick="goToStep(1)">← Voltar</button>
+      <button class="btn" id="btn-confirmar" onclick="confirmarAgendamento()">Confirmar Agendamento ✓</button>
+    </div>
+
+    <div id="step-success" class="hidden">
+      <div class="success-screen">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">Agendamento confirmado!</div>
+        <div class="success-sub" id="success-details"></div>
+        <br><br>
+        <a id="btn-whatsapp" class="btn btn-whatsapp" href="#" target="_blank" rel="noopener">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+          Confirmar pelo WhatsApp
+        </a>
+        <button class="btn" style="margin-top:12px;background:var(--surface);color:var(--white);" onclick="resetAll()">Fazer novo agendamento</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast">
   <span class="toast-icon" id="toast-icon"></span>
   <span class="toast-text" id="toast-text"></span>
 </div>
 
 <script>
-  const SUPABASE_URL = 'https://dzezieygyqaapkfwhlaa.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_LCgD3WBRHyOutMzd5M5ISQ_xh5yg_QX';
+  const FUNCTION_URL = 'https://dzezieygyqaapkfwhlaa.supabase.co/functions/v1/public-booking';
 
-  const api = (path, opts = {}) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': opts.prefer || '',
-      ...opts.headers,
-    },
-    ...opts,
-  });
+  // Lê o slug da URL: /booking/barbearia-saraiva ou ?slug=barbearia-saraiva
+  function getSlug() {
+    const path = window.location.pathname;
+    const match = path.match(/\/booking\/([^\/]+)/);
+    if (match) return match[1];
+    return new URLSearchParams(window.location.search).get('slug');
+  }
+
+  const slug = getSlug();
+
+  const api = (action, payload = null) => fetch(FUNCTION_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slug, action, payload }),
+  }).then(r => r.json());
 
   // State
+  let tenantData = null;
   let selectedService = null;
   let selectedDate = null;
   let selectedTime = null;
@@ -319,9 +232,7 @@
 
   // ─── Steps ───────────────────────────────────────────────
   function goToStep(n) {
-    [0,1,2].forEach(i => {
-      document.getElementById(`step-${i}`).classList.toggle('hidden', i !== n);
-    });
+    [0,1,2].forEach(i => document.getElementById(`step-${i}`).classList.toggle('hidden', i !== n));
     document.getElementById('step-success').classList.add('hidden');
     updateStepIndicator(n);
     if (n === 1) loadSlots();
@@ -342,15 +253,12 @@
 
   // ─── Step 0: Serviços ─────────────────────────────────────
   async function loadServices() {
-    const res = await api('services?select=*&order=name.asc');
-    const services = await res.json();
+    const { services } = await api('get_services');
     const list = document.getElementById('services-list');
-
-    if (!services.length) {
+    if (!services || !services.length) {
       list.innerHTML = '<div class="loading">Nenhum serviço disponível</div>';
       return;
     }
-
     list.innerHTML = services.map(s => `
       <div class="card" id="svc-${s.id}" onclick="selectService(${JSON.stringify(s).replace(/"/g, '&quot;')})">
         <div class="card-icon"><span class="mdi mdi-${s.icon || 'content-cut'}"></span></div>
@@ -382,7 +290,7 @@
     for (let i = 0; i < 21; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
-      if (d.getDay() === 0) continue; // sem domingo
+      if (d.getDay() === 0) continue;
       const iso = localISO(d);
       const label = d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
       const isBlocked = blockedDaysSet.has(iso);
@@ -403,7 +311,6 @@
       chips.appendChild(chip);
     }
     if (!selectedDate) {
-      // Seleciona primeiro dia não bloqueado
       const firstAvailable = chips.querySelector('.date-chip:not(.blocked)');
       if (firstAvailable) {
         firstAvailable.classList.add('selected');
@@ -415,7 +322,6 @@
   async function loadSlots() {
     const grid = document.getElementById('slots-grid');
 
-    // Dia bloqueado — mostra aviso em vez dos slots
     if (blockedDaysSet.has(selectedDate)) {
       document.getElementById('summary-service').innerHTML = `
         <div class="summary-row"><span class="mdi mdi-${selectedService.icon || 'content-cut'}" style="color:var(--gold);font-size:18px"></span><span>${selectedService.name} — ${selectedService.duration_min}min</span></div>
@@ -428,16 +334,13 @@
     }
 
     grid.innerHTML = '<div class="loading">Verificando horários...</div>';
-
     document.getElementById('summary-service').innerHTML = `
       <div class="summary-row"><span class="mdi mdi-${selectedService.icon || 'content-cut'}" style="color:var(--gold);font-size:18px"></span><span>${selectedService.name} — ${selectedService.duration_min}min</span></div>
       <div class="summary-row"><span class="mdi mdi-calendar" style="color:var(--gold);font-size:18px"></span><span>${formatDateLabel(selectedDate)}</span></div>
     `;
-
     buildDateChips();
 
-    const res = await api(`appointments?select=time,duration_min&date=eq.${selectedDate}&status=neq.cancelado`);
-    const existing = await res.json();
+    const { appointments: existing } = await api('get_appointments', { date: selectedDate });
 
     const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
     const fromMin = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
@@ -446,7 +349,7 @@
     const LUNCH = toMin(lunchTime);
 
     const hoje = new Date();
-    const dataHoje = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
+    const dataHoje = localISO(hoje);
     const nowMin = selectedDate === dataHoje ? hoje.getHours()*60 + hoje.getMinutes() : -1;
 
     grid.innerHTML = '';
@@ -456,7 +359,7 @@
       const isPast = nowMin >= 0 && t <= nowMin;
       let conflict = false;
       if (!isLunch && !isPast) {
-        for (const a of existing) {
+        for (const a of (existing || [])) {
           const es = toMin(a.time), ee = es + a.duration_min;
           if (t < ee && t + dur > es) { conflict = true; break; }
         }
@@ -488,7 +391,7 @@
     return d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
   }
 
-  // ─── Step 2: Dados do cliente ─────────────────────────────
+  // ─── Step 2 ───────────────────────────────────────────────
   function renderFinalSummary() {
     document.getElementById('summary-final').innerHTML = `
       <div class="summary-title">Resumo</div>
@@ -521,15 +424,14 @@
   }
 
   async function lookupPhone(raw) {
-    const formatted = formatPhoneForStorage(raw);
-    const res = await api(`clients?phone=eq.${encodeURIComponent(formatted)}&select=*&limit=1`);
-    const data = await res.json();
-    if (data.length > 0) {
-      foundClient = data[0];
-      document.getElementById('client-avatar').textContent = foundClient.avatar;
-      document.getElementById('client-found-name').textContent = foundClient.name;
+    const phone = formatPhoneForStorage(raw);
+    const { client } = await api('lookup_client', { phone });
+    if (client) {
+      foundClient = client;
+      document.getElementById('client-avatar').textContent = client.avatar;
+      document.getElementById('client-found-name').textContent = client.name;
       document.getElementById('client-found-box').classList.add('show');
-      document.getElementById('input-name').value = foundClient.name;
+      document.getElementById('input-name').value = client.name;
       document.getElementById('input-name').readOnly = true;
       document.getElementById('input-name').style.opacity = '0.6';
     } else {
@@ -544,88 +446,47 @@
     document.getElementById('client-found-box').classList.remove('show');
   }
 
-  // ─── Confirmar agendamento ────────────────────────────────
+  // ─── Confirmar ────────────────────────────────────────────
   async function confirmarAgendamento() {
     const phone = document.getElementById('input-phone').value.replace(/\D/g, '');
     if (phone.length < 10) { showToast('error', 'Informe seu telefone com DDD'); return; }
+
+    const name = foundClient ? foundClient.name : document.getElementById('input-name').value.trim();
+    if (!name) { showToast('error', 'Informe seu nome'); return; }
 
     const btn = document.getElementById('btn-confirmar');
     btn.disabled = true;
     btn.textContent = 'Aguarde...';
 
     try {
-      let clientId, clientName;
-
-      if (foundClient) {
-        clientId = foundClient.id;
-        clientName = foundClient.name;
-      } else {
-        const name = document.getElementById('input-name').value.trim();
-        if (!name) { showToast('error', 'Informe seu nome'); btn.disabled = false; btn.textContent = 'Confirmar Agendamento ✓'; return; }
-        clientId = generateUUID();
-        clientName = name;
-        const avatar = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-        const phoneFormatted = formatPhoneForStorage(phone);
-        const cr = await api('clients', {
-          method: 'POST',
-          prefer: 'return=minimal',
-          body: JSON.stringify({ id: clientId, name, phone: phoneFormatted, description: '', avatar }),
-        });
-        if (!cr.ok) throw new Error('Erro ao cadastrar cliente');
-      }
-
-      const apptId = generateUUID();
-      const ar = await api('appointments', {
-        method: 'POST',
-        prefer: 'return=minimal',
-        body: JSON.stringify({
-          id: apptId,
-          client_id: clientId,
-          client_name: clientName,
-          service_id: selectedService.id,
-          service_name: selectedService.name,
-          date: selectedDate,
-          time: selectedTime,
-          duration_min: selectedService.duration_min,
-          price: selectedService.price,
-          status: 'agendado',
-        }),
+      const result = await api('create_appointment', {
+        client_phone: formatPhoneForStorage(phone),
+        client_name: name,
+        service_id: selectedService.id,
+        date: selectedDate,
+        time: selectedTime,
       });
-      if (!ar.ok) throw new Error('Erro ao criar agendamento');
 
-      // Envia push notification para o barbeiro
-      sendBookingPushNotification(clientName, selectedService.name, selectedDate, selectedTime);
+      if (!result.ok) throw new Error(result.error || 'Erro ao agendar');
 
-      // Monta link WhatsApp para o cliente confirmar com o barbeiro
-      const msgWpp = `Olá! Acabei de agendar um *${selectedService.name}* para *${formatDateLabel(selectedDate)}* às *${selectedTime}*.`;
-      document.getElementById('btn-whatsapp').href = `https://wa.me/5511942226319?text=${encodeURIComponent(msgWpp)}`;
+      if (result.whatsapp) {
+        const msg = `Olá! Acabei de agendar um *${result.service_name}* para *${formatDateLabel(selectedDate)}* às *${selectedTime}*.`;
+        document.getElementById('btn-whatsapp').href = `https://wa.me/${result.whatsapp}?text=${encodeURIComponent(msg)}`;
+        document.getElementById('btn-whatsapp').classList.remove('hidden');
+      } else {
+        document.getElementById('btn-whatsapp').classList.add('hidden');
+      }
 
       [0,1,2].forEach(i => document.getElementById(`step-${i}`).classList.add('hidden'));
       document.getElementById('steps').classList.add('hidden');
       document.getElementById('step-success').classList.remove('hidden');
       document.getElementById('success-details').innerHTML =
-        `<strong>${clientName}</strong><br>${selectedService.name}<br>${formatDateLabel(selectedDate)} às ${selectedTime}`;
+        `<strong>${name}</strong><br>${selectedService.name}<br>${formatDateLabel(selectedDate)} às ${selectedTime}`;
 
     } catch (e) {
       showToast('error', e.message || 'Erro ao agendar. Tente novamente.');
       btn.disabled = false;
       btn.textContent = 'Confirmar Agendamento ✓';
-    }
-  }
-
-  // ─── Push Notification para o barbeiro ───────────────────────
-  async function sendBookingPushNotification(nome, servico, data, horario) {
-    try {
-      await fetch(`${SUPABASE_URL}/functions/v1/notify-booking`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-        },
-        body: JSON.stringify({ clientName: nome, serviceName: servico, date: data, time: horario }),
-      });
-    } catch (e) {
-      console.warn('Push notification falhou:', e.message);
     }
   }
 
@@ -641,7 +502,6 @@
     loadServices();
   }
 
-  // ─── Toast ────────────────────────────────────────────────
   function showToast(type, msg) {
     const t = document.getElementById('toast');
     document.getElementById('toast-icon').textContent = type === 'success' ? '✅' : '❌';
@@ -650,50 +510,55 @@
     setTimeout(() => t.classList.remove('show'), 3500);
   }
 
-  // ─── Phone format (igual ao app) ─────────────────────────
   function formatPhoneForStorage(digits) {
     const d = digits.replace(/\D/g, '').slice(0, 11);
     if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
     return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
   }
 
-  // ─── UUID ─────────────────────────────────────────────────
-  function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = Math.random() * 16 | 0;
-      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
-  }
-
   // ─── Init ─────────────────────────────────────────────────
   async function init() {
-    try {
-      const [blockedRes, settingsRes] = await Promise.all([
-        api('blocked_days?select=date'),
-        api('settings?select=key,value'),
-      ]);
-      const blockedData = await blockedRes.json();
-      const settingsData = await settingsRes.json();
-      if (Array.isArray(blockedData)) blockedDaysSet = new Set(blockedData.map(r => r.date));
-      if (Array.isArray(settingsData)) {
-        const byKey = Object.fromEntries(settingsData.map(r => [r.key, r.value]));
-        if (byKey.lunch_time) lunchTime = byKey.lunch_time;
-        if (byKey.disabled_slots) {
-          try { disabledSlotsSet = new Set(JSON.parse(byKey.disabled_slots)); } catch {}
-        }
-        if (byKey.primary_color) {
-          document.documentElement.style.setProperty('--gold', byKey.primary_color);
-          document.documentElement.style.setProperty('--gold-light', byKey.primary_color);
-        }
-        if (byKey.logo_url) {
-          const img = document.getElementById('headerLogo');
-          if (img) img.src = byKey.logo_url;
-        }
-      }
-    } catch (e) {
-      console.warn('init parcial:', e);
+    if (!slug) {
+      document.getElementById('app-loading').classList.add('hidden');
+      document.getElementById('app-not-found').classList.remove('hidden');
+      return;
     }
-    loadServices();
+
+    try {
+      const { tenant, settings, blocked_days, error } = await api('get_config');
+
+      if (error || !tenant) {
+        document.getElementById('app-loading').classList.add('hidden');
+        document.getElementById('app-not-found').classList.remove('hidden');
+        return;
+      }
+
+      tenantData = tenant;
+      blockedDaysSet = new Set(blocked_days || []);
+
+      const byKey = Object.fromEntries((settings || []).map(r => [r.key, r.value]));
+      if (byKey.lunch_time) lunchTime = byKey.lunch_time;
+      if (byKey.disabled_slots) {
+        try { disabledSlotsSet = new Set(JSON.parse(byKey.disabled_slots)); } catch {}
+      }
+      if (byKey.primary_color) {
+        document.documentElement.style.setProperty('--gold', byKey.primary_color);
+        document.documentElement.style.setProperty('--gold-light', byKey.primary_color);
+      }
+
+      document.getElementById('headerName').textContent = tenant.name;
+      document.title = `${tenant.name} — Agendamento`;
+      const img = document.getElementById('headerLogo');
+      if (tenant.logo_url) img.src = tenant.logo_url;
+      else img.style.display = 'none';
+
+      document.getElementById('app-loading').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+
+      loadServices();
+    } catch (e) {
+      document.getElementById('app-loading').innerHTML = '<div style="color:var(--danger)">Erro ao carregar. Tente novamente.</div>';
+    }
   }
 
   init();
