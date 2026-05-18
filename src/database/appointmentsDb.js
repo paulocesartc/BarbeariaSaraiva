@@ -1,10 +1,12 @@
 import { supabase, generateUUID } from './db';
 import { getLunchTime, getDisabledSlots } from './settingsDb';
+import { getTenantId } from './tenantContext';
 
 export async function getAppointmentsByDate(date) {
   const { data, error } = await supabase
     .from('appointments')
     .select('*')
+    .eq('tenant_id', getTenantId())
     .eq('date', date)
     .order('time', { ascending: true });
   if (error) throw error;
@@ -15,6 +17,7 @@ export async function getAppointmentsByClient(clientId) {
   const { data, error } = await supabase
     .from('appointments')
     .select('*')
+    .eq('tenant_id', getTenantId())
     .eq('client_id', clientId)
     .order('date', { ascending: false });
   if (error) throw error;
@@ -25,6 +28,7 @@ export async function getAllAppointmentDates() {
   const { data, error } = await supabase
     .from('appointments')
     .select('date')
+    .eq('tenant_id', getTenantId())
     .order('date', { ascending: true });
   if (error) throw error;
   const unique = [...new Set(data.map((r) => r.date))];
@@ -35,6 +39,7 @@ export async function createAppointment({ client_id, client_name, service_id, se
   const id = generateUUID();
   const { error } = await supabase.from('appointments').insert({
     id,
+    tenant_id: getTenantId(),
     client_id: String(client_id ?? ''),
     client_name: String(client_name ?? ''),
     service_id: String(service_id ?? ''),
@@ -50,24 +55,26 @@ export async function createAppointment({ client_id, client_name, service_id, se
 }
 
 export async function updateAppointmentStatus(id, status) {
-  const { error } = await supabase.from('appointments').update({ status }).eq('id', id);
+  const { error } = await supabase.from('appointments').update({ status })
+    .eq('id', id).eq('tenant_id', getTenantId());
   if (error) throw error;
 }
 
 export async function finalizeAppointment({ id, clientId, price, paymentMethod }) {
   const { error } = await supabase.from('appointments')
     .update({ status: 'finalizado', payment_method: paymentMethod })
-    .eq('id', id);
+    .eq('id', id).eq('tenant_id', getTenantId());
   if (error) throw error;
 
   if (clientId) {
     const { data: client, error: fetchError } = await supabase
-      .from('clients').select('total_appointments, total_spent').eq('id', clientId).single();
+      .from('clients').select('total_appointments, total_spent')
+      .eq('id', clientId).eq('tenant_id', getTenantId()).single();
     if (fetchError) throw fetchError;
     const { error: updateError } = await supabase.from('clients').update({
       total_appointments: (client.total_appointments ?? 0) + 1,
       total_spent: (client.total_spent ?? 0) + (Number(price) || 0),
-    }).eq('id', clientId);
+    }).eq('id', clientId).eq('tenant_id', getTenantId());
     if (updateError) throw updateError;
   }
 }
@@ -80,6 +87,7 @@ export async function hasConflict(date, time, duration_min, excludeId = null) {
   let query = supabase
     .from('appointments')
     .select('time, duration_min')
+    .eq('tenant_id', getTenantId())
     .eq('date', date)
     .not('status', 'in', '("cancelado")');
   if (excludeId) query = query.neq('id', excludeId);
@@ -103,6 +111,7 @@ export async function getAvailableSlots(date, duration_min) {
     supabase
       .from('appointments')
       .select('time, duration_min')
+      .eq('tenant_id', getTenantId())
       .eq('date', date)
       .not('status', 'in', '("cancelado")'),
     getLunchTime(),
@@ -145,6 +154,7 @@ export async function autoTransitionOngoing(date) {
   const { data, error } = await supabase
     .from('appointments')
     .select('id, time')
+    .eq('tenant_id', getTenantId())
     .eq('date', date)
     .in('status', ['agendado', 'livre']);
   if (error) throw error;
@@ -152,7 +162,8 @@ export async function autoTransitionOngoing(date) {
   for (const appt of data) {
     const [h, m] = appt.time.split(':').map(Number);
     if (h * 60 + m <= currentMinutes) {
-      await supabase.from('appointments').update({ status: 'ocupado' }).eq('id', appt.id);
+      await supabase.from('appointments').update({ status: 'ocupado' })
+        .eq('id', appt.id).eq('tenant_id', getTenantId());
     }
   }
 }
@@ -161,6 +172,7 @@ export async function getDayRevenue(date) {
   const { data, error } = await supabase
     .from('appointments')
     .select('price')
+    .eq('tenant_id', getTenantId())
     .eq('date', date)
     .eq('status', 'finalizado');
   if (error) throw error;
@@ -171,6 +183,7 @@ export async function getDayCount(date) {
   const { data, error } = await supabase
     .from('appointments')
     .select('id')
+    .eq('tenant_id', getTenantId())
     .eq('date', date)
     .not('status', 'in', '("cancelado")');
   if (error) throw error;
@@ -181,6 +194,7 @@ export async function getBlockedDays() {
   const { data, error } = await supabase
     .from('blocked_days')
     .select('date')
+    .eq('tenant_id', getTenantId())
     .order('date', { ascending: true });
   if (error) throw error;
   return data.map((r) => r.date);
@@ -190,6 +204,7 @@ export async function isDayBlocked(date) {
   const { data, error } = await supabase
     .from('blocked_days')
     .select('id')
+    .eq('tenant_id', getTenantId())
     .eq('date', date)
     .maybeSingle();
   if (error) throw error;
@@ -199,7 +214,7 @@ export async function isDayBlocked(date) {
 export async function blockDay(date) {
   const { error } = await supabase
     .from('blocked_days')
-    .upsert({ date }, { onConflict: 'date' });
+    .upsert({ date, tenant_id: getTenantId() }, { onConflict: 'date,tenant_id' });
   if (error) throw error;
 }
 
@@ -207,6 +222,7 @@ export async function unblockDay(date) {
   const { error } = await supabase
     .from('blocked_days')
     .delete()
-    .eq('date', date);
+    .eq('date', date)
+    .eq('tenant_id', getTenantId());
   if (error) throw error;
 }

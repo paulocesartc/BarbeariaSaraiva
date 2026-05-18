@@ -4,9 +4,11 @@ import {
   StyleSheet, ActivityIndicator, KeyboardAvoidingView,
   Platform, Image,
 } from 'react-native';
+const APP_LOGO = require('../assets/logo.png');
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { supabase } from '../database/db';
 import { setSetting } from '../database/settingsDb';
+import { setTenantId } from '../database/tenantContext';
 import { colors } from '../theme/colors';
 
 export default function LoginScreen({ onLoginSuccess }) {
@@ -41,7 +43,8 @@ export default function LoginScreen({ onLoginSuccess }) {
 
       if (profileErr || !profile) throw new Error('Perfil não encontrado. Contate o suporte.');
 
-      // Salva tenant_name nos settings pra notificações e uso geral
+      // Salva tenant_id no contexto global e tenant_name nos settings
+      setTenantId(profile.tenant_id);
       await setSetting('tenant_name', profile.tenants?.name ?? profile.name);
 
       onLoginSuccess(profile);
@@ -59,7 +62,7 @@ export default function LoginScreen({ onLoginSuccess }) {
     >
       <View style={styles.inner}>
         <View style={styles.logoBox}>
-          <MaterialCommunityIcons name="content-cut" size={48} color={colors.gold} />
+          <Image source={APP_LOGO} style={styles.logoImg} resizeMode="contain" />
         </View>
 
         <Text style={styles.title}>Bem-vindo</Text>
@@ -212,6 +215,7 @@ const styles = StyleSheet.create({
   eyeBtn: {
     padding: 4,
   },
+  logoImg: { width: 72, height: 72, borderRadius: 16 },
   btn: {
     backgroundColor: colors.gold,
     borderRadius: 12,

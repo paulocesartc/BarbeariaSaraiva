@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { supabase } from '../database/db';
+import { setTenantId } from '../database/tenantContext';
 
 import DashboardScreen from '../screens/DashboardScreen';
 import AgendaScreen from '../screens/AgendaScreen';
@@ -134,7 +135,18 @@ export default function AppNavigator() {
   const [session, setSession] = useState(undefined);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) {
+        // Restaura tenant_id ao reabrir o app com sessão ativa
+        const { data: profile } = await supabase
+          .from('barber_profiles')
+          .select('tenant_id')
+          .eq('user_id', data.session.user.id)
+          .single();
+        if (profile) setTenantId(profile.tenant_id);
+      }
+      setSession(data.session);
+    });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
     return () => listener.subscription.unsubscribe();
   }, []);
