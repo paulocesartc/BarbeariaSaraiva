@@ -126,9 +126,10 @@ Deno.serve(async (req) => {
         clientId = existing[0].id;
       } else {
         const avatar = client_name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
+        const newId = crypto.randomUUID();
         const { data: newClient, error: clientErr } = await supabase
           .from('clients')
-          .insert({ tenant_id: tid, name: client_name, phone: client_phone, avatar, description: '' })
+          .insert({ id: newId, tenant_id: tid, name: client_name, phone: client_phone, avatar, description: '' })
           .select('id')
           .single();
 
