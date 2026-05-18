@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { getAppointmentsByDate, getDayRevenue, getDayCount } from '../database/appointmentsDb';
 import { setSetting, getSetting } from '../database/settingsDb';
 
@@ -125,12 +126,11 @@ async function setupAndroidChannel() {
   });
 }
 
-const EAS_PROJECT_ID = '4b851623-c57f-4d11-b7dc-5d7ebca2b50e';
-
 /** Obtém o Expo Push Token e salva no Supabase para uso pelo site de agendamento */
 async function savePushToken() {
   try {
-    const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId: EAS_PROJECT_ID });
+    const { projectId } = Constants.expoConfig?.extra?.eas ?? {};
+    const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
     if (token) {
       await setSetting('expo_push_token', token);
       console.log('[notifications] Push token salvo:', token);

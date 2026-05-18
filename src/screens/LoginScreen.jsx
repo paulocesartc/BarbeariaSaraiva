@@ -45,9 +45,10 @@ export default function LoginScreen({ onLoginSuccess }) {
       if (profileErr || !profile) throw new Error('Perfil não encontrado. Contate o suporte.');
 
       // Salva tenant_id no contexto global e tenant_name nos settings
+      // IMPORTANTE: setTenantId primeiro, antes de qualquer setSetting ou setupNotifications
       setTenantId(profile.tenant_id);
       await setSetting('tenant_name', profile.tenants?.name ?? profile.name);
-      setupNotifications().catch(() => {});
+      await setupNotifications();
 
       onLoginSuccess(profile);
     } catch (e) {
