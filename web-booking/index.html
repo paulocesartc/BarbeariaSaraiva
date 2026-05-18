@@ -555,7 +555,8 @@
       document.getElementById('headerName').textContent = tenant.name;
       document.title = `${tenant.name} — Agendamento`;
       const img = document.getElementById('headerLogo');
-      if (tenant.logo_url) img.src = tenant.logo_url;
+      const logoUrl = byKey.logo_url || tenant.logo_url;
+      if (logoUrl) img.src = logoUrl;
       else img.style.display = 'none';
 
       document.getElementById('app-loading').classList.add('hidden');
