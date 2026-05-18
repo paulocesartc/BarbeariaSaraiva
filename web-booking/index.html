@@ -204,12 +204,18 @@
 <script>
   const FUNCTION_URL = 'https://dzezieygyqaapkfwhlaa.supabase.co/functions/v1/public-booking';
 
-  // Lê o slug da URL: /booking/barbearia-saraiva ou ?slug=barbearia-saraiva
+  // Detecta slug pela URL ou pelo hostname
   function getSlug() {
-    const path = window.location.pathname;
-    const match = path.match(/\/booking\/([^\/]+)/);
-    if (match) return match[1];
-    return new URLSearchParams(window.location.search).get('slug');
+    // ?slug=xxx ou /booking/xxx (prioridade)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('slug')) return params.get('slug');
+    const pathMatch = window.location.pathname.match(/\/booking\/([^\/]+)/);
+    if (pathMatch) return pathMatch[1];
+    // Pelo hostname: barbearia-saraiva.vercel.app → barbearia-saraiva
+    const host = window.location.hostname; // ex: barbearia-saraiva.vercel.app
+    const hostMatch = host.match(/^([^.]+)\./);
+    if (hostMatch && hostMatch[1] !== 'www' && hostMatch[1] !== 'localhost') return hostMatch[1];
+    return null;
   }
 
   const slug = getSlug();
