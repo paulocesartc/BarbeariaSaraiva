@@ -154,6 +154,20 @@ Deno.serve(async (req) => {
 
       if (apptErr) return Response.json({ error: 'Erro ao criar agendamento' }, { status: 500, headers: corsHeaders });
 
+      // Dispara push notification pro barbeiro correto
+      const notifyUrl = `${SUPABASE_URL}/functions/v1/notify-booking`;
+      fetch(notifyUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SERVICE_ROLE_KEY}` },
+        body: JSON.stringify({
+          tenantId: tid,
+          clientName: client_name,
+          serviceName: service.name,
+          date,
+          time,
+        }),
+      }).catch(() => {});
+
       return Response.json({
         ok: true,
         whatsapp: tenant.whatsapp,

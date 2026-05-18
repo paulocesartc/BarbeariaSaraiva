@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
 import { getAppointmentsByDate, getDayRevenue, getDayCount } from '../database/appointmentsDb';
-import { setSetting } from '../database/settingsDb';
+import { setSetting, getSetting } from '../database/settingsDb';
 
 const MORNING_TASK = 'MORNING_NOTIFICATION';
 const EVENING_TASK = 'EVENING_NOTIFICATION';
@@ -27,12 +27,12 @@ export async function requestNotificationPermission() {
 
 /** Agenda a notificação matinal diária às 07:00 */
 export async function scheduleMorningNotification() {
-  // Cancela anteriores para não duplicar
   await cancelScheduledNotifications(MORNING_TASK);
+  const tenantName = (await getSetting('tenant_name')) ?? 'Barbearia';
 
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: '☀️ Bom dia! Barbearia Saraiva',
+      title: `☀️ Bom dia! ${tenantName}`,
       body: 'Confira sua agenda do dia de hoje!',
       data: { type: 'morning' },
     },
@@ -116,8 +116,9 @@ async function cancelScheduledNotifications(identifier) {
 
 async function setupAndroidChannel() {
   if (Platform.OS !== 'android') return;
+  const tenantName = (await getSetting('tenant_name')) ?? 'Barbearia';
   await Notifications.setNotificationChannelAsync('default', {
-    name: 'Barbearia Saraiva',
+    name: tenantName,
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lightColor: '#D4AF37',

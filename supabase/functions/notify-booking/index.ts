@@ -19,12 +19,23 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     console.log('Supabase URL:', supabaseUrl);
 
-    const settingsRes = await fetch(`${supabaseUrl}/rest/v1/settings?select=value&key=eq.expo_push_token`, {
-      headers: {
-        'apikey': supabaseKey!,
-        'Authorization': `Bearer ${supabaseKey}`,
-      },
-    });
+    const { tenantId } = body;
+    if (!tenantId) {
+      return new Response(JSON.stringify({ error: 'tenantId obrigatório' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+
+    const settingsRes = await fetch(
+      `${supabaseUrl}/rest/v1/settings?select=value&key=eq.expo_push_token&tenant_id=eq.${tenantId}`,
+      {
+        headers: {
+          'apikey': supabaseKey!,
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+      }
+    );
 
     const settings = await settingsRes.json();
     console.log('Settings response:', JSON.stringify(settings));
