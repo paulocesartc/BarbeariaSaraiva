@@ -9,6 +9,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { supabase } from '../database/db';
 import { setSetting } from '../database/settingsDb';
 import { setTenantId } from '../database/tenantContext';
+import { setupNotifications } from '../services/notifications';
 import { colors } from '../theme/colors';
 
 export default function LoginScreen({ onLoginSuccess }) {
@@ -46,6 +47,7 @@ export default function LoginScreen({ onLoginSuccess }) {
       // Salva tenant_id no contexto global e tenant_name nos settings
       setTenantId(profile.tenant_id);
       await setSetting('tenant_name', profile.tenants?.name ?? profile.name);
+      setupNotifications().catch(() => {});
 
       onLoginSuccess(profile);
     } catch (e) {
