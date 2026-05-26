@@ -77,7 +77,23 @@ Deno.serve(async (req) => {
         .eq('date', date)
         .neq('status', 'cancelado');
 
-      return Response.json({ appointments: appointments ?? [] }, { headers: corsHeaders });
+      // Slots personalizados para o dia (sobrepõe o global)
+      const { data: daySlotSetting } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('tenant_id', tid)
+        .eq('key', `day_slots_${date}`)
+        .maybeSingle();
+
+      let dayDisabledSlots: string[] | null = null;
+      if (daySlotSetting?.value) {
+        try { dayDisabledSlots = JSON.parse(daySlotSetting.value); } catch {}
+      }
+
+      return Response.json({
+        appointments: appointments ?? [],
+        day_disabled_slots: dayDisabledSlots,
+      }, { headers: corsHeaders });
     }
 
     // ── LOOKUP_CLIENT ─────────────────────────────────────────

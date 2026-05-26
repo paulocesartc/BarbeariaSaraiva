@@ -19,6 +19,7 @@ import NovoAgendamentoScreen from '../screens/NovoAgendamentoScreen';
 import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
 import DiasBloqueadosScreen from '../screens/DiasBloqueadosScreen';
 import HorariosScreen from '../screens/HorariosScreen';
+import HorariosDiaScreen from '../screens/HorariosDiaScreen';
 import LoginScreen from '../screens/LoginScreen';
 
 const Tab = createBottomTabNavigator();
@@ -190,6 +191,11 @@ export default function AppNavigator() {
         <Stack.Screen
           name="Horarios"
           component={HorariosScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="HorariosDia"
+          component={HorariosDiaScreen}
           options={{ animation: 'slide_from_right' }}
         />
       </Stack.Navigator>

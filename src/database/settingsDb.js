@@ -52,3 +52,22 @@ export async function getDisabledSlots() {
 export async function setDisabledSlots(slots) {
   await setSetting('disabled_slots', JSON.stringify(slots));
 }
+
+export async function getDaySlots(date) {
+  const v = await getSetting(`day_slots_${date}`);
+  if (v === null) return null; // null = sem personalização, usa o global
+  try { return JSON.parse(v); } catch { return null; }
+}
+
+export async function setDaySlots(date, disabledSlots) {
+  await setSetting(`day_slots_${date}`, JSON.stringify(disabledSlots));
+}
+
+export async function clearDaySlots(date) {
+  const { error } = await supabase
+    .from('settings')
+    .delete()
+    .eq('tenant_id', getTenantId())
+    .eq('key', `day_slots_${date}`);
+  if (error) throw error;
+}

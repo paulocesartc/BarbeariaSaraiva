@@ -428,7 +428,11 @@
     `;
     buildDateChips();
 
-    const { appointments: existing } = await api('get_appointments', { date: selectedDate });
+    const { appointments: existing, day_disabled_slots } = await api('get_appointments', { date: selectedDate });
+    // Slots desativados: usa personalização do dia se existir, senão usa o global
+    const effectiveDisabledSlots = day_disabled_slots !== null && day_disabled_slots !== undefined
+      ? new Set(day_disabled_slots)
+      : disabledSlotsSet;
 
     const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
     const fromMin = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
@@ -442,7 +446,7 @@
 
     grid.innerHTML = '';
     for (let t = START; t + dur <= END; t += STEP) {
-      if (disabledSlotsSet.has(fromMin(t))) continue;
+      if (effectiveDisabledSlots.has(fromMin(t))) continue;
       const isLunch = t === LUNCH;
       const isPast = nowMin >= 0 && t <= nowMin;
       let conflict = false;

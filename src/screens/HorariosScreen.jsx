@@ -110,6 +110,15 @@ export default function HorariosScreen({ navigation }) {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
+          style={styles.dayBtn}
+          onPress={() => navigation.navigate('HorariosDia')}
+          activeOpacity={0.8}
+        >
+          <MaterialCommunityIcons name="calendar-edit" size={18} color={colors.white} />
+          <Text style={[styles.dayBtnText, { flex: 1 }]}>Personalizar por dia</Text>
+          <MaterialCommunityIcons name="chevron-right" size={18} color={colors.textMuted} />
+        </TouchableOpacity>
+        <TouchableOpacity
           style={[styles.saveBtn, saving && { opacity: 0.6 }]}
           onPress={handleSave}
           disabled={saving}
@@ -162,8 +171,14 @@ function makeStyles(primary) {
     footer: {
       position: 'absolute', bottom: 0, left: 0, right: 0,
       backgroundColor: colors.background, paddingHorizontal: 20, paddingTop: 12,
-      borderTopWidth: 1, borderTopColor: colors.border,
+      borderTopWidth: 1, borderTopColor: colors.border, gap: 8,
     },
+    dayBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 10,
+      backgroundColor: colors.surface, borderRadius: 14, paddingVertical: 13, paddingHorizontal: 16,
+      borderWidth: 1, borderColor: colors.border,
+    },
+    dayBtnText: { color: colors.white, fontWeight: '600', fontSize: 14 },
     saveBtn: {
       backgroundColor: primary, borderRadius: 14, paddingVertical: 16,
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
