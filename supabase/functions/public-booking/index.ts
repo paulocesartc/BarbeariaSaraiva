@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     // Resolve tenant pelo slug
     const { data: tenant, error: tenantErr } = await supabase
       .from('tenants')
-      .select('id, name, whatsapp, logo_url')
+      .select('id, name, whatsapp, logo_url, pix_key, city')
       .eq('slug', slug)
       .single();
 
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
         .eq('tenant_id', tid);
 
       return Response.json({
-        tenant: { name: tenant.name, whatsapp: tenant.whatsapp, logo_url: tenant.logo_url },
+        tenant: { name: tenant.name, whatsapp: tenant.whatsapp, logo_url: tenant.logo_url, pix_key: tenant.pix_key ?? null, city: tenant.city ?? null },
         settings: settings ?? [],
         blocked_days: (blocked ?? []).map((r: { date: string }) => r.date),
       }, { headers: corsHeaders });
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
         if (clientErr || !newClient) {
           console.error('Erro ao cadastrar cliente:', JSON.stringify(clientErr));
-          return Response.json({ error: 'Erro ao cadastrar cliente' }, { status: 500, headers: corsHeaders });
+          return Response.json({ error: 'Erro ao cadastrar cliente', detail: clientErr }, { status: 500, headers: corsHeaders });
         }
         clientId = newClient.id;
       }

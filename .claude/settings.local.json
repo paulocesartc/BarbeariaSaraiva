@@ -14,7 +14,8 @@
       "Bash(node -e ' *)",
       "Bash(git -C \"C:/Users/paulo/Documents/BarbeariaSaraiva\" add src/)",
       "Bash(git -C \"C:/Users/paulo/Documents/BarbeariaSaraiva\" commit -m \"fix: push token dinâmico por projectId do app.json\")",
-      "Bash(git -C \"C:/Users/paulo/Documents/BarbeariaSaraiva\" push)"
+      "Bash(git -C \"C:/Users/paulo/Documents/BarbeariaSaraiva\" push)",
+      "PowerShell(head *)"
     ],
     "deny": [],
     "ask": []

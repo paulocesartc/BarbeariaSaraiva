@@ -110,6 +110,20 @@
     .not-found { text-align: center; padding: 60px 20px; }
     .not-found h2 { color: var(--danger); font-size: 20px; margin-bottom: 8px; }
     .not-found p { color: var(--text-secondary); font-size: 14px; }
+
+    .cancel-warning { background: rgba(231,76,60,0.08); border: 1px solid rgba(231,76,60,0.35); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px; }
+    .cancel-warning .mdi { color: var(--danger); font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .cancel-warning p { font-size: 13px; color: #f0a0a0; line-height: 1.5; }
+    .cancel-warning strong { color: var(--danger); }
+
+    .pix-box { background: var(--surface); border: 1.5px solid var(--gold); border-radius: 14px; padding: 18px; margin-top: 24px; text-align: left; }
+    .pix-box-title { font-size: 15px; font-weight: 700; color: var(--gold); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .pix-box-sub { font-size: 12px; color: var(--text-secondary); margin-bottom: 14px; }
+    .pix-code { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 11px; font-family: monospace; color: var(--text-secondary); word-break: break-all; line-height: 1.6; margin-bottom: 12px; user-select: all; cursor: text; }
+    .btn-pix-copy { width: 100%; padding: 13px; border-radius: 10px; background: var(--gold); color: var(--bg); font-size: 14px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.15s; }
+    .btn-pix-copy:hover { opacity: 0.88; }
+    .btn-pix-copy.copied { background: var(--success); color: #fff; }
+    .pix-amount { font-size: 20px; font-weight: 800; color: var(--gold); margin-bottom: 14px; }
   </style>
 </head>
 <body>
@@ -176,6 +190,10 @@
         <label>Seu nome completo</label>
         <input type="text" id="input-name" placeholder="João da Silva" />
       </div>
+      <div class="cancel-warning">
+        <span class="mdi mdi-alert-circle-outline"></span>
+        <p><strong>Política de cancelamento:</strong> Em caso de cancelamento ou não comparecimento, será cobrado <strong>50% do valor do serviço</strong>.</p>
+      </div>
       <button class="btn btn-back" onclick="goToStep(1)">← Voltar</button>
       <button class="btn" id="btn-confirmar" onclick="confirmarAgendamento()">Confirmar Agendamento ✓</button>
     </div>
@@ -185,7 +203,18 @@
         <div class="success-icon">🎉</div>
         <div class="success-title">Agendamento confirmado!</div>
         <div class="success-sub" id="success-details"></div>
-        <br><br>
+
+        <div class="pix-box" id="pix-box">
+          <div class="pix-box-title"><span class="mdi mdi-qrcode"></span> Pague via PIX</div>
+          <div class="pix-box-sub">Copie o código abaixo e cole no seu banco</div>
+          <div class="pix-amount" id="pix-amount"></div>
+          <div class="pix-code" id="pix-code"></div>
+          <button class="btn-pix-copy" id="btn-pix-copy" onclick="copiarPix()">
+            <span class="mdi mdi-content-copy"></span> Copiar código PIX
+          </button>
+        </div>
+
+        <br>
         <a id="btn-whatsapp" class="btn btn-whatsapp" href="#" target="_blank" rel="noopener">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
           Confirmar pelo WhatsApp
@@ -203,6 +232,59 @@
 
 <script>
   const FUNCTION_URL = 'https://dzezieygyqaapkfwhlaa.supabase.co/functions/v1/public-booking';
+
+  // ─── PIX EMV (BR Code) ────────────────────────────────────
+  const PIX_KEY_FALLBACK = '32109086000181'; // CNPJ Barbearia Saraiva
+
+  function gerarPixCopiaECola({ chave, nome, cidade, valor }) {
+    function f(id, v) { return `${id}${String(v.length).padStart(2,'0')}${v}`; }
+    const merchantAccount = f('26', f('00','BR.GOV.BCB.PIX') + f('01', chave));
+    const nomeLimpo = nome.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().slice(0,25);
+    const cidadeLimpa = cidade.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().slice(0,15);
+    const valorStr = Number(valor).toFixed(2);
+    const payload =
+      f('00','01') +
+      merchantAccount +
+      f('52','0000') +
+      f('53','986') +
+      f('54', valorStr) +
+      f('58','BR') +
+      f('59', nomeLimpo) +
+      f('60', cidadeLimpa) +
+      f('62', f('05','***')) +
+      '6304';
+    function crc16(s) {
+      let c = 0xFFFF;
+      for (let i = 0; i < s.length; i++) {
+        c ^= s.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) c = (c & 0x8000) ? ((c << 1) ^ 0x1021) : (c << 1);
+      }
+      return (c & 0xFFFF).toString(16).toUpperCase().padStart(4,'0');
+    }
+    return payload + crc16(payload);
+  }
+
+  function renderizarPix(valor) {
+    const pixKey = (tenantData && tenantData.pix_key) || PIX_KEY_FALLBACK;
+    const nomeTenant = (tenantData && tenantData.name) || 'BARBEARIA';
+    const cidade = (tenantData && tenantData.city) || 'BRASIL';
+    const codigo = gerarPixCopiaECola({ chave: pixKey, nome: nomeTenant, cidade, valor });
+    document.getElementById('pix-amount').textContent = `R$ ${Number(valor).toFixed(2)}`;
+    document.getElementById('pix-code').textContent = codigo;
+  }
+
+  function copiarPix() {
+    const codigo = document.getElementById('pix-code').textContent;
+    navigator.clipboard.writeText(codigo).then(() => {
+      const btn = document.getElementById('btn-pix-copy');
+      btn.classList.add('copied');
+      btn.innerHTML = '<span class="mdi mdi-check"></span> Copiado!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '<span class="mdi mdi-content-copy"></span> Copiar código PIX';
+      }, 2500);
+    });
+  }
 
   // Detecta slug pela URL ou pelo hostname
   function getSlug() {
@@ -488,6 +570,7 @@
       document.getElementById('step-success').classList.remove('hidden');
       document.getElementById('success-details').innerHTML =
         `<strong>${name}</strong><br>${selectedService.name}<br>${formatDateLabel(selectedDate)} às ${selectedTime}`;
+      renderizarPix(selectedService.price);
 
     } catch (e) {
       showToast('error', e.message || 'Erro ao agendar. Tente novamente.');
