@@ -15,7 +15,16 @@
       "Bash(git -C \"C:/Users/paulo/Documents/BarbeariaSaraiva\" add src/)",
       "Bash(git -C \"C:/Users/paulo/Documents/BarbeariaSaraiva\" commit -m \"fix: push token dinâmico por projectId do app.json\")",
       "Bash(git -C \"C:/Users/paulo/Documents/BarbeariaSaraiva\" push)",
-      "PowerShell(head *)"
+      "PowerShell(head *)",
+      "Bash(npx vercel *)",
+      "WebFetch(domain:barbearia-saraiva.vercel.app)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\Paulo\\\\Documents\\\\BarbeariaSaraiva\\\\\" -Force | Select-Object Name *)",
+      "WebFetch(domain:barbearia-saraiva-ayka5h9s6-paulobdms-projects.vercel.app)",
+      "WebFetch(domain:barbearia-saraiva-q93mwdtd0-paulobdms-projects.vercel.app)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('output:', d['builds'][0]['output'][:5] if d.get\\('builds'\\) else 'no builds'\\)\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); const b=d.builds&&d.builds[0]; console.log\\('output count:', b&&b.output&&b.output.length\\); console.log\\('first outputs:', JSON.stringify\\(b&&b.output&&b.output.slice\\(0,5\\)\\)\\)\")",
+      "Bash(findstr /i \"output\")",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": []

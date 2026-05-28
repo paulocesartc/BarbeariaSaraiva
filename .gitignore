@@ -47,3 +47,5 @@ yarn-error.*
 
 # Firebase credentials (service account - nunca commitar)
 *firebase-adminsdk*.json
+.vercel
+.env*
