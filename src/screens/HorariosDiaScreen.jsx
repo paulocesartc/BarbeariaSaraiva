@@ -34,7 +34,6 @@ function buildNext21Days() {
   for (let i = 0; i < 21; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
-    if (d.getDay() === 0) continue;
     days.push({
       iso: localISO(d),
       label: d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' }),
