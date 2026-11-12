@@ -64,6 +64,23 @@
     .date-chip.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
     .date-chip.blocked { border-color: rgba(231,76,60,0.35); background: rgba(231,76,60,0.08); color: var(--text-muted); cursor: not-allowed; text-decoration: line-through; opacity: 0.7; }
 
+    .date-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .date-header .section-title { margin-bottom: 0; }
+    .btn-month { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--gold); background: transparent; color: var(--gold); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .btn-month:hover, .btn-month.active { background: var(--gold); color: var(--bg); }
+    .btn-month .mdi { font-size: 16px; }
+
+    .month-cal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 20px; }
+    .month-cal-head { display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .month-cal-title { font-size: 15px; font-weight: 700; color: var(--white); text-transform: capitalize; }
+    .month-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .month-cal-weekday { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; padding-bottom: 4px; }
+    .month-cal-day { aspect-ratio: 1; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--white); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .month-cal-day:hover:not(.disabled):not(.blocked) { border-color: var(--gold); }
+    .month-cal-day.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+    .month-cal-day.disabled { opacity: 0.25; cursor: not-allowed; }
+    .month-cal-day.blocked { border-color: rgba(231,76,60,0.35); background: rgba(231,76,60,0.08); color: var(--text-muted); cursor: not-allowed; text-decoration: line-through; }
+
     .slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
     @media (max-width: 360px) { .slots-grid { grid-template-columns: repeat(3, 1fr); } }
     .slot { padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 600; color: var(--white); transition: all 0.15s; text-align: center; }
@@ -165,8 +182,19 @@
 
     <div id="step-1" class="hidden">
       <div class="summary-card" id="summary-service" style="margin-bottom:20px"></div>
-      <p class="section-title">Escolha a data</p>
+      <div class="date-header">
+        <p class="section-title">Escolha a data</p>
+        <button type="button" class="btn-month" id="btn-month" onclick="toggleMonthCalendar()">
+          <span class="mdi mdi-calendar-month"></span><span id="btn-month-label">Próximo mês</span>
+        </button>
+      </div>
       <div class="date-scroll" id="date-chips"></div>
+      <div class="month-cal hidden" id="month-cal">
+        <div class="month-cal-head">
+          <span class="month-cal-title" id="month-cal-title"></span>
+        </div>
+        <div class="month-cal-grid" id="month-cal-grid"></div>
+      </div>
       <p class="section-title">Horários disponíveis</p>
       <div class="slots-grid" id="slots-grid"><div class="loading">Carregando...</div></div>
       <button class="btn btn-back" onclick="goToStep(0)">← Voltar</button>
@@ -371,13 +399,28 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
+  function selectDate(iso) {
+    selectedDate = iso;
+    selectedTime = null;
+    document.getElementById('btn-next-horario').disabled = true;
+    loadSlots();
+  }
+
   function buildDateChips() {
     const chips = document.getElementById('date-chips');
     chips.innerHTML = '';
     const today = new Date();
+    const dates = [];
     for (let i = 0; i < 21; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
+      dates.push(d);
+    }
+    // Data escolhida pelo calendário fora da faixa dos chips: mostra ela primeiro
+    if (selectedDate && !dates.some(d => localISO(d) === selectedDate)) {
+      dates.unshift(new Date(selectedDate + 'T12:00:00'));
+    }
+    for (const d of dates) {
       const iso = localISO(d);
       const label = d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
       const isBlocked = blockedDaysSet.has(iso);
@@ -385,16 +428,7 @@
       chip.className = 'date-chip' + (iso === selectedDate ? ' selected' : '') + (isBlocked ? ' blocked' : '');
       chip.dataset.date = iso;
       chip.textContent = label;
-      if (!isBlocked) {
-        chip.onclick = () => {
-          selectedDate = iso;
-          selectedTime = null;
-          document.getElementById('btn-next-horario').disabled = true;
-          document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
-          chip.classList.add('selected');
-          loadSlots();
-        };
-      }
+      if (!isBlocked) chip.onclick = () => selectDate(iso);
       chips.appendChild(chip);
     }
     if (!selectedDate) {
@@ -403,6 +437,63 @@
         firstAvailable.classList.add('selected');
         selectedDate = firstAvailable.dataset.date;
       }
+    }
+    if (!document.getElementById('month-cal').classList.contains('hidden')) renderMonthCalendar();
+    updateMonthButtonLabel();
+  }
+
+  // ─── Calendário mensal ────────────────────────────────────
+  // Mostra somente o mês seguinte ao atual
+  function nextMonthDate() {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  }
+
+  function updateMonthButtonLabel() {
+    const isOpen = !document.getElementById('month-cal').classList.contains('hidden');
+    const nextMonth = nextMonthDate().toLocaleDateString('pt-BR', { month: 'long' });
+    document.getElementById('btn-month-label').textContent = isOpen ? 'Fechar' : nextMonth.charAt(0).toUpperCase() + nextMonth.slice(1);
+    document.getElementById('btn-month').classList.toggle('active', isOpen);
+  }
+
+  function toggleMonthCalendar() {
+    const cal = document.getElementById('month-cal');
+    const opening = cal.classList.contains('hidden');
+    cal.classList.toggle('hidden', !opening);
+    if (opening) renderMonthCalendar();
+    updateMonthButtonLabel();
+  }
+
+  function renderMonthCalendar() {
+    const first = nextMonthDate();
+    const year = first.getFullYear(), month = first.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayISO = localISO(new Date());
+
+    document.getElementById('month-cal-title').textContent = first.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+    const grid = document.getElementById('month-cal-grid');
+    grid.innerHTML = ['D','S','T','Q','Q','S','S'].map(w => `<div class="month-cal-weekday">${w}</div>`).join('');
+    for (let i = 0; i < first.getDay(); i++) grid.appendChild(document.createElement('div'));
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const iso = localISO(new Date(year, month, day));
+      const isPast = iso < todayISO;
+      const isBlocked = !isPast && blockedDaysSet.has(iso);
+      const cell = document.createElement('div');
+      cell.className = 'month-cal-day' + (isPast ? ' disabled' : '') + (isBlocked ? ' blocked' : '') + (iso === selectedDate ? ' selected' : '');
+      cell.textContent = day;
+      if (!isPast && !isBlocked) {
+        cell.onclick = () => {
+          document.getElementById('month-cal').classList.add('hidden');
+          selectDate(iso);
+          const chips = document.getElementById('date-chips');
+          const chip = chips.querySelector('.date-chip.selected');
+          if (chip) chips.scrollLeft = chip.offsetLeft - chips.offsetLeft - 8;
+          document.querySelector('.date-header').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+      }
+      grid.appendChild(cell);
     }
   }
 
